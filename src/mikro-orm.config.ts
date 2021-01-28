@@ -12,5 +12,6 @@ export default {
   type: 'postgresql',
   debug: !__prod__,
   entities: [Adventure],
-  password: 'password'
+  user: 'tribal',
+  password: 'tribal'
 } as Parameters<typeof MikroORM.init>[0];
