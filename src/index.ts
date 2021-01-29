@@ -1,15 +1,33 @@
 import { MikroORM } from '@mikro-orm/core';
 import { __prod__ } from './constants';
-import { Adventure } from './entities/Adventure';
 import mikroConfig from './mikro-orm.config';
+import express from 'express';
+import { ApolloServer } from 'apollo-server-express';
+import { buildSchema } from 'type-graphql';
+import { HelloResolver } from './resolvers/hello';
+import { AdventureResolver } from './resolvers/adventure';
+import 'reflect-metadata';
 
 const main = async () => {
   const orm = await MikroORM.init(mikroConfig);
   orm.getMigrator().up();
-//   const adventure = orm.em.create(Adventure, { title: 'hi' });
-//   await orm.em.persistAndFlush(adventure);
-  const adventures = await orm.em.find(Adventure, {});
-  console.log(adventures);
+
+  const app = express();
+
+  const apolloServer = new ApolloServer({
+    schema: await buildSchema({
+      resolvers: [HelloResolver, AdventureResolver]
+    }),
+    context: () => ({ em: orm.em })
+  });
+
+  apolloServer.applyMiddleware({ app });
+
+  app.listen(4000, () => {
+    console.log('Server started on localhost:4000');
+  });
 };
 
-main();
+main().catch((err) => {
+  console.log(err);
+});
