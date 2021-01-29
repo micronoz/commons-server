@@ -2,6 +2,7 @@ import { __prod__ } from './constants';
 import { Adventure } from './entities/Adventure';
 import { MikroORM } from '@mikro-orm/core';
 import path from 'path';
+import { User } from './entities/User';
 
 export default {
   migrations: {
@@ -11,7 +12,7 @@ export default {
   dbName: 'tribal',
   type: 'postgresql',
   debug: !__prod__,
-  entities: [Adventure],
+  entities: [Adventure, User],
   user: 'tribal',
   password: 'tribal'
 } as Parameters<typeof MikroORM.init>[0];

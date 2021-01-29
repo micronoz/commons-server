@@ -4,9 +4,9 @@ import mikroConfig from './mikro-orm.config';
 import express from 'express';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
-import { HelloResolver } from './resolvers/hello';
 import { AdventureResolver } from './resolvers/adventure';
 import 'reflect-metadata';
+import { UserResolver } from './resolvers/user';
 
 const main = async () => {
   const orm = await MikroORM.init(mikroConfig);
@@ -16,7 +16,7 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [HelloResolver, AdventureResolver]
+      resolvers: [AdventureResolver, UserResolver]
     }),
     context: () => ({ em: orm.em })
   });
