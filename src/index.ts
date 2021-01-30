@@ -7,12 +7,18 @@ import { buildSchema } from 'type-graphql';
 import { AdventureResolver } from './resolvers/adventure';
 import 'reflect-metadata';
 import { UserResolver } from './resolvers/user';
+import connectRedis from 'connect-redis';
+import session from 'express-session';
+import { decodeToken } from './middleware/auth';
 
 const main = async () => {
   const orm = await MikroORM.init(mikroConfig);
   orm.getMigrator().up();
 
   const app = express();
+  app.use(decodeToken);
+
+  const RedisStore = connectRedis(session);
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
@@ -22,7 +28,6 @@ const main = async () => {
   });
 
   apolloServer.applyMiddleware({ app });
-
   app.listen(4000, () => {
     console.log('Server started on localhost:4000');
   });
