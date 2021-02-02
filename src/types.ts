@@ -1,8 +1,9 @@
 import { EntityManager, IDatabaseDriver, Connection } from '@mikro-orm/core';
-import { CustomRequest } from './middleware/auth';
+import { FirebaseUser } from './model/firebaseUser';
 
 export type MyContext = {
   em: EntityManager<any> & EntityManager<IDatabaseDriver<Connection>>;
-  req: CustomRequest;
+  req: Request;
   res: Response;
+  user: FirebaseUser;
 };

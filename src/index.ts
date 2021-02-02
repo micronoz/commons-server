@@ -16,7 +16,6 @@ const main = async () => {
   orm.getMigrator().up();
 
   const app = express();
-  app.use(decodeToken);
 
   const RedisStore = connectRedis(session);
 
@@ -24,7 +23,12 @@ const main = async () => {
     schema: await buildSchema({
       resolvers: [AdventureResolver, UserResolver]
     }),
-    context: () => ({ em: orm.em })
+    context: async ({ req }) => {
+      {
+        const user = await decodeToken(req);
+        return { user, em: orm.em };
+      }
+    }
   });
 
   apolloServer.applyMiddleware({ app });

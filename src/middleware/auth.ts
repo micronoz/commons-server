@@ -1,33 +1,26 @@
-import { NextFunction, Request, Response } from 'express';
-import { MiddlewareFn } from 'type-graphql';
-import { MyContext } from '../types';
+import { AuthenticationError } from 'apollo-server-express';
+import { Request } from 'express';
+import { performance } from 'perf_hooks';
+import { FirebaseUser } from '../model/firebaseUser';
 
 const admin = require('firebase-admin');
-admin.initializeApp();
+var serviceAccount = require('../../secrets/serviceAccountKey.json');
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
 
-export interface CustomRequest extends Request {
-  currentUser: any;
-}
-
-export async function decodeToken(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
-  console.log('Decoding token');
+export async function decodeToken(req: Request): Promise<FirebaseUser> {
   if (req.headers?.authorization?.startsWith('Bearer ')) {
     const idToken = req.headers.authorization.split('Bearer ')[1];
-
     try {
       const decodedToken = await admin.auth().verifyIdToken(idToken);
-      (req as CustomRequest)['currentUser'] = decodedToken;
+      const user = decodedToken as FirebaseUser;
+      return user;
     } catch (err) {
       console.error(err);
-      res.status(403).send('Not authenticated');
+      throw new AuthenticationError('you must be logged in');
     }
   } else {
-    res.status(403).send('Not authenticated');
+    throw new AuthenticationError('you must be logged in');
   }
-
-  next();
 }
