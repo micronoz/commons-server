@@ -17,7 +17,7 @@ export class Adventure extends BaseEntity {
 
   @Field(() => String)
   @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @Field(() => String)
   @UpdateDateColumn({
@@ -25,7 +25,7 @@ export class Adventure extends BaseEntity {
     onUpdate: 'NOW()',
     nullable: true
   })
-  updatedAt: Date;
+  updatedAt?: Date;
 
   @Field()
   @Column({ type: 'text' })

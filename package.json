@@ -9,8 +9,7 @@
     "build": "tsc -p .",
     "watch": "rm -rf dist && tsc -w",
     "start": "node dist/index.js",
-    "format": "prettier --config .prettierrc 'src/**/*.ts' --write",
-    "create:migration": "mikro-orm migration:create"
+    "format": "prettier --config .prettierrc 'src/**/*.ts' --write"
   },
   "repository": {
     "type": "git",
@@ -48,12 +47,5 @@
     "type-graphql": "^1.1.1",
     "typeorm": "^0.2.31",
     "yarn": "^1.22.10"
-  },
-  "mikro-orm": {
-    "useTsNode": true,
-    "configPaths": [
-      "./src/mikro-orm.config.ts",
-      "./dist/mikro-orm.config.js"
-    ]
   }
 }

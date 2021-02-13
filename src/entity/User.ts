@@ -16,7 +16,7 @@ export class User {
 
   @Field(() => String)
   @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @Field(() => String)
   @UpdateDateColumn({
@@ -24,7 +24,7 @@ export class User {
     onUpdate: 'NOW()',
     nullable: true
   })
-  updatedAt: Date;
+  updatedAt?: Date;
 
   @Field()
   @Column({ type: 'text', unique: true })

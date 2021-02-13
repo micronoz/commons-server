@@ -1,9 +1,9 @@
+import 'reflect-metadata';
 import { __prod__, __dbhost__ } from './constants';
 import { createConnection } from 'typeorm';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
 import { AdventureResolver } from './resolvers/adventure';
-import 'reflect-metadata';
 import { UserResolver } from './resolvers/user';
 import { decodeToken } from './middleware/auth';
 import { OrmConfig } from './ormconfig';
