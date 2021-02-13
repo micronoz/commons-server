@@ -1,0 +1,31 @@
+version: '3.7'
+
+services:
+  ts-node-docker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+    volumes:
+      - ./src:/home/node/app/src
+      - ./tsconfig.json:/home/node/app/tsconfig.json
+      - ./secrets:/home/node/app/secrets
+    container_name: ts-node-docker
+    environment:
+      - DATABASE_HOST=pg
+    expose:
+      - '4000'
+    ports:
+      - '4000:4000'
+    depends_on:
+      - 'pg'
+    command: yarn run dev-docker
+  pg:
+    env_file:
+      - database.env
+    image: 'postgres'
+    container_name: 'postgres'
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./pg/db_data:/var/lib/postgresql/data

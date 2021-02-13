@@ -1,5 +1,5 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
-import { Adventure } from '../entities/Adventure';
+import { Adventure } from '../entity/Adventure';
 import { MyContext } from '../types';
 
 @Resolver()
@@ -8,8 +8,8 @@ export class AdventureResolver {
   adventure(
     @Arg('id') id: number,
     @Ctx() { em }: MyContext
-  ): Promise<Adventure | null> {
-    return em.findOne(Adventure, { id });
+  ): Promise<Adventure> {
+    return em.findOneOrFail(Adventure, id);
   }
 
   @Query(() => [Adventure])
@@ -23,7 +23,7 @@ export class AdventureResolver {
     @Arg('title') title: string
   ): Promise<Adventure> {
     const ad = em.create(Adventure, { title });
-    await em.persistAndFlush(ad);
+    await em.save(ad);
     return ad;
   }
 
@@ -33,9 +33,9 @@ export class AdventureResolver {
     @Arg('id') id: number,
     @Arg('title', { nullable: true }) title: string
   ): Promise<Adventure> {
-    const ad = await em.findOneOrFail(Adventure, { id });
+    const ad = await em.findOneOrFail(Adventure, id);
     ad.title = title;
-    await em.persistAndFlush(ad);
+    await em.save(ad);
     return ad;
   }
 
@@ -45,11 +45,21 @@ export class AdventureResolver {
     @Arg('id') id: number
   ): Promise<boolean> {
     try {
-      await em.nativeDelete(Adventure, { id });
+      await em.delete(Adventure, id);
     } catch (err) {
       console.error(err);
       return false;
     }
     return true;
+  }
+
+  @Mutation(() => Boolean)
+  async deleteAllAdventures(@Ctx() { em }: MyContext): Promise<boolean> {
+    try {
+      await em.clear(Adventure);
+      return true;
+    } catch {
+      return false;
+    }
   }
 }

@@ -1,6 +1,5 @@
 import { AuthenticationError } from 'apollo-server-express';
 import { Request } from 'express';
-import { performance } from 'perf_hooks';
 import { FirebaseUser } from '../model/firebaseUser';
 
 const admin = require('firebase-admin');

@@ -1,8 +1,8 @@
-import { EntityManager, IDatabaseDriver, Connection } from '@mikro-orm/core';
 import { FirebaseUser } from './model/firebaseUser';
+import { EntityManager, Connection } from 'typeorm';
 
 export type MyContext = {
-  em: EntityManager<any> & EntityManager<IDatabaseDriver<Connection>>;
+  em: EntityManager;
   req: Request;
   res: Response;
   user: FirebaseUser;
