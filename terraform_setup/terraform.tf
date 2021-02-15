@@ -49,10 +49,9 @@ resource "aws_cloudformation_stack" "ecs_service" {
   depends_on    = [aws_cloudformation_stack.vpc, aws_ecr_repository.demo-app-repository]
 
   parameters = {
-    ContainerPort = 4000
-    StackName     = local.aws_vpc_stack_name
-    ServiceName   = local.aws_ecs_service_name
-    DesiredCount  = 1
+    StackName    = local.aws_vpc_stack_name
+    ServiceName  = local.aws_ecs_service_name
+    DesiredCount = 1
     # Note: Since ImageUrl parameter is not specified, the Service
     # will be deployed with the nginx image when created
   }
