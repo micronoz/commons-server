@@ -22,6 +22,7 @@ locals {
   aws_ecs_cluster_stack_name = "${var.aws_resource_prefix}-cluster-stack"
   aws_client_sg_stack_name   = "${var.aws_resource_prefix}-client-sg-stack"
   aws_kms_stack_name         = "${var.aws_resource_prefix}-kms-stack"
+  aws_aurora_stack_name      = "${var.aws_resource_prefix}-aurora-stack"
   # The name of the ECR repository to be created
   aws_ecr_repository_name = var.aws_resource_prefix
   # The name of the ECS cluster to be created
@@ -98,9 +99,29 @@ resource "aws_cloudformation_stack" "ecs_service" {
     ParentClusterStack = local.aws_ecs_cluster_stack_name
     DesiredCount       = 1
     SubnetsReach       = "Private"
-    AppPort            = 4000
+    # AppPort            = 80
     ParentClientStack1 = local.aws_client_sg_stack_name
     # Note: Since ImageUrl parameter is not specified, the Service
     # will be deployed with the nginx image when created
   }
+}
+
+resource "aws_cloudformation_stack" "aurora_postgres" {
+  name          = local.aws_aurora_stack_name
+  template_body = file("cloudonaut-templates/aurora.yml")
+  depends_on    = [aws_cloudformation_stack.vpc, aws_cloudformation_stack.client_sg]
+  capabilities  = ["CAPABILITY_NAMED_IAM"]
+
+  parameters = {
+    ParentVPCStack       = local.aws_vpc_stack_name
+    ParentClientStack    = local.aws_client_sg_stack_name
+    DBName               = var.aurora_db_name
+    DBMasterUsername     = var.aurora_db_username
+    DBMasterUserPassword = var.aurora_db_password
+    ParentKmsKeyStack    = local.aws_kms_stack_name
+  }
+}
+
+output "aurora" {
+  value = aws_cloudformation_stack.aurora_postgres.outputs
 }
