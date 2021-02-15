@@ -6,13 +6,14 @@ orbs:
 
 workflows:
   build-and-deploy:
-    branches:
-      only:
-        - main
     jobs:
       - aws-ecr/build-and-push-image:
           repo: '${AWS_RESOURCE_NAME_PREFIX}'
           tag: '${CIRCLE_SHA1}'
+          filters:
+            branches:
+              only:
+                - main
       - aws-ecs/deploy-service-update:
           requires:
             - aws-ecr/build-and-push-image
@@ -21,3 +22,7 @@ workflows:
           container-image-name-updates: 'container=${AWS_RESOURCE_NAME_PREFIX}-service,image-and-tag=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${AWS_RESOURCE_NAME_PREFIX}:${CIRCLE_SHA1}'
           verify-revision-is-deployed: true
           container-env-var-updates: 'container=${AWS_RESOURCE_NAME_PREFIX}-service,name=FIREBASE_KEY,value=${FIREBASE_KEY}'
+          filters:
+            branches:
+              only:
+                - main
