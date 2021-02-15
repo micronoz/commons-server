@@ -6,6 +6,9 @@ orbs:
 
 workflows:
   build-and-deploy:
+    branches:
+      only:
+        - main
     jobs:
       - aws-ecr/build-and-push-image:
           repo: '${AWS_RESOURCE_NAME_PREFIX}'

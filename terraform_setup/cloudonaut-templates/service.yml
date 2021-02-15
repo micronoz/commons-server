@@ -86,7 +86,6 @@ Metadata:
 Parameters:
   ServiceName:
     Type: String
-    Default: nginx
     Description: A name for the service
   ParentVPCStack:
     Description: 'Stack name of parent VPC stack based on vpc/vpc-*azs.yaml template.'

@@ -89,7 +89,7 @@ resource "aws_cloudformation_stack" "key-store" {
 resource "aws_cloudformation_stack" "ecs_service" {
   name          = local.aws_ecs_service_stack_name
   template_body = file("cloudonaut-templates/service.yml")
-  depends_on    = [aws_cloudformation_stack.ecs_cluster]
+  depends_on    = [aws_cloudformation_stack.ecs_cluster, aws_cloudformation_stack.client_sg]
   capabilities  = ["CAPABILITY_NAMED_IAM"]
 
   parameters = {
@@ -99,6 +99,7 @@ resource "aws_cloudformation_stack" "ecs_service" {
     DesiredCount       = 1
     SubnetsReach       = "Private"
     AppPort            = 4000
+    ParentClientStack1 = local.aws_client_sg_stack_name
     # Note: Since ImageUrl parameter is not specified, the Service
     # will be deployed with the nginx image when created
   }
