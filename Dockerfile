@@ -5,7 +5,7 @@ WORKDIR /home/node/app
 COPY *.json ./
 COPY yarn.lock ./
 
-RUN yarn install --production
+RUN yarn install
 
 COPY ./src/ ./src 
 
