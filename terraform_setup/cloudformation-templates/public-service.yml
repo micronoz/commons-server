@@ -4,8 +4,9 @@ Parameters:
   StackName:
     Type: String
     Default: production
-    Description: The name of the parent Fargate networking stack that you created. Necessary
-                 to locate and reference resources created by that stack.
+    Description:
+      The name of the parent Fargate networking stack that you created. Necessary
+      to locate and reference resources created by that stack.
   ServiceName:
     Type: String
     Default: nginx
@@ -13,8 +14,9 @@ Parameters:
   ImageUrl:
     Type: String
     Default: nginx
-    Description: The url of a docker image that contains the application process that
-                 will handle the traffic for this service
+    Description:
+      The url of a docker image that contains the application process that
+      will handle the traffic for this service
   ContainerPort:
     Type: Number
     Default: 80
@@ -29,31 +31,31 @@ Parameters:
     Description: How much memory in megabytes to give the container
   Path:
     Type: String
-    Default: "*"
+    Default: '*'
     Description: A path on the public load balancer that this service
-                 should be connected to. Use * to send all load balancer
-                 traffic to this service.
+      should be connected to. Use * to send all load balancer
+      traffic to this service.
   Priority:
     Type: Number
     Default: 1
     Description: The priority for the routing rule added to the load balancer.
-                 This only applies if your have multiple services which have been
-                 assigned to different paths on the load balancer.
+      This only applies if your have multiple services which have been
+      assigned to different paths on the load balancer.
   DesiredCount:
     Type: Number
     Default: 2
     Description: How many copies of the service task to run
   Role:
     Type: String
-    Default: ""
-    Description: (Optional) An IAM role to give the service's containers if the code within needs to
-                 access other AWS resources like S3 buckets, DynamoDB tables, etc
+    Default: ''
+    Description:
+      (Optional) An IAM role to give the service's containers if the code within needs to
+      access other AWS resources like S3 buckets, DynamoDB tables, etc
 
 Conditions:
-  HasCustomRole: !Not [ !Equals [!Ref 'Role', ''] ]
+  HasCustomRole: !Not [!Equals [!Ref 'Role', '']]
 
 Resources:
-
   # The task definition. This is a simple metadata description of what
   # container to run, and what resource requirements it has.
   TaskDefinition:
@@ -66,13 +68,12 @@ Resources:
       RequiresCompatibilities:
         - FARGATE
       ExecutionRoleArn:
-        Fn::ImportValue:
-          !Join [':', [!Ref 'StackName', 'ECSTaskExecutionRole']]
+        Fn::ImportValue: !Join [':', [!Ref 'StackName', 'ECSTaskExecutionRole']]
       TaskRoleArn:
         Fn::If:
           - 'HasCustomRole'
           - !Ref 'Role'
-          - !Ref "AWS::NoValue"
+          - !Ref 'AWS::NoValue'
       ContainerDefinitions:
         - Name: !Ref 'ServiceName'
           Image: !Ref 'ImageUrl'
@@ -94,8 +95,7 @@ Resources:
     Properties:
       ServiceName: !Ref 'ServiceName'
       Cluster:
-        Fn::ImportValue:
-          !Join [':', [!Ref 'StackName', 'ClusterName']]
+        Fn::ImportValue: !Join [':', [!Ref 'StackName', 'ClusterName']]
       LaunchType: FARGATE
       DeploymentConfiguration:
         MaximumPercent: 200
@@ -133,15 +133,14 @@ Resources:
       HealthyThresholdCount: 2
       TargetType: ip
       TargetGroupAttributes:
-      - Key: deregistration_delay.timeout_seconds
-        Value: '20'
+        - Key: deregistration_delay.timeout_seconds
+          Value: '20'
       Name: !Ref 'ServiceName'
       Port: !Ref 'ContainerPort'
       Protocol: HTTP
       UnhealthyThresholdCount: 2
       VpcId:
-        Fn::ImportValue:
-          !Join [':', [!Ref 'StackName', 'VPCId']]
+        Fn::ImportValue: !Join [':', [!Ref 'StackName', 'VPCId']]
 
   # Create a rule on the load balancer for routing traffic to the target group
   LoadBalancerRule:
@@ -154,6 +153,5 @@ Resources:
         - Field: path-pattern
           Values: [!Ref 'Path']
       ListenerArn:
-        Fn::ImportValue:
-          !Join [':', [!Ref 'StackName', 'PublicListener']]
+        Fn::ImportValue: !Join [':', [!Ref 'StackName', 'PublicListener']]
       Priority: !Ref 'Priority'

@@ -14,3 +14,5 @@ FROM base as production
 ENV NODE_PATH=./build
 
 RUN yarn run build
+
+ENTRYPOINT [ "node", "dist/index.js" ] 

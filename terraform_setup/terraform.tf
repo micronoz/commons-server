@@ -29,29 +29,30 @@ locals {
 }
 
 resource "aws_ecr_repository" "demo-app-repository" {
-  name = local.aws_ecr_repository_name
+  name                 = local.aws_ecr_repository_name
+  image_tag_mutability = "IMMUTABLE"
 }
 resource "aws_cloudformation_stack" "vpc" {
-  name = local.aws_vpc_stack_name
+  name          = local.aws_vpc_stack_name
   template_body = file("cloudformation-templates/public-vpc.yml")
-  capabilities = ["CAPABILITY_NAMED_IAM"]
+  capabilities  = ["CAPABILITY_NAMED_IAM"]
   parameters = {
-    ClusterName = local.aws_ecs_cluster_name
+    ClusterName       = local.aws_ecs_cluster_name
     ExecutionRoleName = local.aws_ecs_execution_role_name
   }
 }
 
 # Note: creates task definition and task definition family with the same name as the ServiceName parameter value
 resource "aws_cloudformation_stack" "ecs_service" {
-  name = local.aws_ecs_service_stack_name
+  name          = local.aws_ecs_service_stack_name
   template_body = file("cloudformation-templates/public-service.yml")
-  depends_on = [aws_cloudformation_stack.vpc, aws_ecr_repository.demo-app-repository]
+  depends_on    = [aws_cloudformation_stack.vpc, aws_ecr_repository.demo-app-repository]
 
   parameters = {
-    ContainerMemory = 1024
-    ContainerPort = 80
-    StackName = local.aws_vpc_stack_name
-    ServiceName = local.aws_ecs_service_name
+    ContainerPort = 4000
+    StackName     = local.aws_vpc_stack_name
+    ServiceName   = local.aws_ecs_service_name
+    DesiredCount  = 1
     # Note: Since ImageUrl parameter is not specified, the Service
     # will be deployed with the nginx image when created
   }
