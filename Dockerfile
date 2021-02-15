@@ -3,8 +3,9 @@ FROM node:14 as base
 WORKDIR /home/node/app
 
 COPY *.json ./
+COPY yarn.lock ./
 
-RUN yarn install
+RUN yarn install --production
 
 COPY ./src/ ./src 
 
