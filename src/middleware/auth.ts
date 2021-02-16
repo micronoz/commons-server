@@ -3,10 +3,6 @@ import { Request } from 'express';
 import { FirebaseUser } from '../model/firebaseUser';
 
 const admin = require('firebase-admin');
-var serviceAccount = require('../../secrets/serviceAccountKey.json');
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
 
 export async function decodeToken(req: Request): Promise<FirebaseUser> {
   if (req.headers?.authorization?.startsWith('Bearer ')) {

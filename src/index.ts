@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { __prod__, __dbhost__ } from './constants';
+import { __prod__, __dbhost__, __firebaseKey__ } from './constants';
 import { createConnection } from 'typeorm';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
@@ -9,10 +9,21 @@ import { decodeToken } from './middleware/auth';
 import { OrmConfig } from './ormconfig';
 
 const express = require('express');
+const admin = require('firebase-admin');
 //const connectRedis = require('connect-redis');
 //const session = require('express-session');
 
 const main = async () => {
+  var serviceAccount;
+  if (__prod__) {
+    serviceAccount = __firebaseKey__;
+  } else {
+    serviceAccount = require('../secrets/serviceAccountKey.json');
+  }
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+
   const connection = await createConnection(OrmConfig);
   const app = express();
 
@@ -31,7 +42,7 @@ const main = async () => {
   });
 
   apolloServer.applyMiddleware({ app });
-  app.listen(4000, () => {
+  app.listen(__prod__ ? 80 : 4000, () => {
     console.log('Server started on localhost:4000');
   });
 };
