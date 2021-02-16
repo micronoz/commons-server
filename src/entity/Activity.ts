@@ -10,7 +10,7 @@ import { Field, ObjectType, ID } from 'type-graphql';
 
 @ObjectType()
 @Entity()
-export class Adventure extends BaseEntity {
+export class Activity extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
   id!: string;
