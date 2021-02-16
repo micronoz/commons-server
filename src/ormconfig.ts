@@ -1,5 +1,6 @@
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 import { __dbhost__, __dbpassword__ } from './constants';
+import { join } from 'path';
 
 let OrmConfig = {
   type: 'postgres',
@@ -10,9 +11,9 @@ let OrmConfig = {
   database: 'commons',
   synchronize: true,
   logging: true,
-  entities: ['src/entity/**/*.ts'],
-  migrations: ['src/migration/**/*.ts'],
-  subscribers: ['src/subscriber/**/*.ts'],
+  entities: [join(__dirname, 'entity', '*.{ts,js}')],
+  migrations: [join(__dirname, 'migration', '*.{ts,js}')],
+  subscribers: [join(__dirname, 'subscriber', '*.{ts,js}')],
   cli: {
     entitiesDir: 'src/entity',
     migrationsDir: 'src/migration',
