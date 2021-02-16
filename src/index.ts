@@ -16,12 +16,15 @@ const admin = require('firebase-admin');
 const main = async () => {
   var serviceAccount;
   if (__prod__) {
-    serviceAccount = __firebaseKey__;
+    let data = __firebaseKey__;
+    let buff = Buffer.from(data, 'base64');
+    let key = buff.toString('utf-8');
+    serviceAccount = key;
   } else {
     serviceAccount = require('../secrets/serviceAccountKey.json');
   }
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+    credential: admin.credential.cert(JSON.parse(serviceAccount))
   });
 
   const connection = await createConnection(OrmConfig);
