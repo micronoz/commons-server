@@ -195,7 +195,7 @@ Parameters:
   AppImage:
     Description: 'The Docker image to use for the app container. You can use images in the Docker Hub registry or specify other repositories (repository-url/image:tag).'
     Type: String
-    Default: 'widdix/hello:v1'
+    Default: 'nginx'
   AppCommand:
     Description: 'Optional commands (comma-delimited) used when starting the app container.'
     Type: String
@@ -795,7 +795,8 @@ Resources:
           - !Ref 'AWS::NoValue'
       Cpu: !FindInMap [CpuMap, !Ref Cpu, Cpu]
       ExecutionRoleArn: !GetAtt 'TaskExecutionRole.Arn'
-      Family: !Ref 'AWS::StackName'
+      # Family: !Ref 'AWS::StackName'
+      Family: !Ref 'ServiceName'
       Memory: !FindInMap [MemoryMap, !Ref Memory, Memory]
       NetworkMode: awsvpc
       RequiresCompatibilities: [FARGATE]

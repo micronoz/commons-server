@@ -21,7 +21,7 @@ locals {
   aws_ecs_service_stack_name = "${var.aws_resource_prefix}-svc-stack"
   aws_ecs_cluster_stack_name = "${var.aws_resource_prefix}-cluster-stack"
   aws_client_sg_stack_name   = "${var.aws_resource_prefix}-client-sg-stack"
-  aws_kms_stack_name         = "${var.aws_resource_prefix}-kms-stack"
+  aws_kms_stack_name         = "commons-kms-stack-final"
   aws_aurora_stack_name      = "${var.aws_resource_prefix}-aurora-stack"
   # The name of the ECR repository to be created
   aws_ecr_repository_name = var.aws_resource_prefix
@@ -41,6 +41,10 @@ resource "aws_cloudformation_stack" "vpc" {
   name          = local.aws_vpc_stack_name
   template_body = file("cloudonaut-templates/vpc-2azs.yml")
   capabilities  = ["CAPABILITY_NAMED_IAM"]
+
+  # parameters = {
+  #   Name = "hasan-server-${var.aws_resource_prefix}"
+  # }
 }
 
 resource "aws_cloudformation_stack" "nat" {
@@ -62,6 +66,8 @@ resource "aws_cloudformation_stack" "ecs_cluster" {
   parameters = {
     ParentVPCStack = local.aws_vpc_stack_name
     ClusterName    = local.aws_ecs_cluster_name
+    # ParentZoneStack = local.aws_vpc_stack_name
+    # SubDomainNameWithDot = "hasan-server-${var.aws_resource_prefix}."
   }
 }
 
@@ -78,12 +84,19 @@ resource "aws_cloudformation_stack" "client_sg" {
   parameters = {
     ParentVPCStack = local.aws_vpc_stack_name
   }
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_cloudformation_stack" "key-store" {
   name          = local.aws_kms_stack_name
   template_body = file("cloudonaut-templates/kms-key.yml")
   capabilities  = ["CAPABILITY_NAMED_IAM"]
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # Note: creates task definition and task definition family with the same name as the ServiceName parameter value
