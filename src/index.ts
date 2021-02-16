@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { __prod__, __dbhost__, __firebaseKey__ } from './constants';
+import { __prod__, __dbhost__, __firebaseKey__, __port__ } from './constants';
 import { createConnection } from 'typeorm';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
@@ -43,10 +43,13 @@ const main = async () => {
       }
     }
   });
-
+  var port = __port__;
   apolloServer.applyMiddleware({ app });
-  app.listen(__prod__ ? 80 : 4000, () => {
-    console.log('Server started on localhost:4000');
+  app.get('/', function (_req: any, res: { send: (arg0: string) => void }) {
+    res.send('hello world');
+  });
+  app.listen(port, () => {
+    console.log('Server started on localhost:' + port);
   });
 };
 
