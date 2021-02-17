@@ -795,7 +795,6 @@ Resources:
           - !Ref 'AWS::NoValue'
       Cpu: !FindInMap [CpuMap, !Ref Cpu, Cpu]
       ExecutionRoleArn: !GetAtt 'TaskExecutionRole.Arn'
-      # Family: !Ref 'AWS::StackName'
       Family: !Ref 'ServiceName'
       Memory: !FindInMap [MemoryMap, !Ref Memory, Memory]
       NetworkMode: awsvpc
@@ -879,7 +878,7 @@ Resources:
         - Name: ClusterName
           Value: { 'Fn::ImportValue': !Sub '${ParentClusterStack}-Cluster' }
         - Name: ServiceName
-          Value: !GetAtt 'Service.Name'
+          Value: !Ref 'ServiceName'
       MetricName: CPUUtilization
       ComparisonOperator: GreaterThanThreshold
       Statistic: Average
@@ -951,7 +950,7 @@ Resources:
       ResourceId: !Sub
         - 'service/${Cluster}/${Service}'
         - Cluster: { 'Fn::ImportValue': !Sub '${ParentClusterStack}-Cluster' }
-          Service: !GetAtt 'Service.Name'
+          Service: !Ref 'ServiceName'
       RoleARN: !GetAtt 'ScalableTargetRole.Arn'
       ScalableDimension: 'ecs:service:DesiredCount'
       ServiceNamespace: ecs
@@ -993,7 +992,7 @@ Resources:
         - Name: ClusterName
           Value: { 'Fn::ImportValue': !Sub '${ParentClusterStack}-Cluster' }
         - Name: ServiceName
-          Value: !GetAtt 'Service.Name'
+          Value: !Ref 'ServiceName'
       MetricName: CPUUtilization
       ComparisonOperator: GreaterThanThreshold
       Statistic: Average
@@ -1012,7 +1011,7 @@ Resources:
         - Name: ClusterName
           Value: { 'Fn::ImportValue': !Sub '${ParentClusterStack}-Cluster' }
         - Name: ServiceName
-          Value: !GetAtt 'Service.Name'
+          Value: !Ref 'ServiceName'
       MetricName: CPUUtilization
       ComparisonOperator: LessThanThreshold
       Statistic: Average

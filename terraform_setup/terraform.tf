@@ -47,13 +47,25 @@ resource "aws_cloudformation_stack" "vpc" {
   # }
 }
 
-resource "aws_cloudformation_stack" "nat" {
-  name          = local.aws_nat_stack_name
+resource "aws_cloudformation_stack" "natA" {
+  name          = "${local.aws_nat_stack_name}-A"
   template_body = file("cloudonaut-templates/nat.yml")
   capabilities  = ["CAPABILITY_NAMED_IAM"]
   depends_on    = [aws_cloudformation_stack.vpc]
   parameters = {
     ParentVPCStack = local.aws_vpc_stack_name
+    SubnetZone     = "A"
+  }
+}
+
+resource "aws_cloudformation_stack" "natB" {
+  name          = "${local.aws_nat_stack_name}-B"
+  template_body = file("cloudonaut-templates/nat.yml")
+  capabilities  = ["CAPABILITY_NAMED_IAM"]
+  depends_on    = [aws_cloudformation_stack.vpc]
+  parameters = {
+    ParentVPCStack = local.aws_vpc_stack_name
+    SubnetZone     = "B"
   }
 }
 
@@ -110,12 +122,9 @@ resource "aws_cloudformation_stack" "ecs_service" {
     ServiceName        = local.aws_ecs_service_name
     ParentVPCStack     = local.aws_vpc_stack_name
     ParentClusterStack = local.aws_ecs_cluster_stack_name
-    DesiredCount       = 1
+    DesiredCount       = 2
     SubnetsReach       = "Private"
-    # AppPort            = 80
     ParentClientStack1 = local.aws_client_sg_stack_name
-    # Note: Since ImageUrl parameter is not specified, the Service
-    # will be deployed with the nginx image when created
   }
 }
 
