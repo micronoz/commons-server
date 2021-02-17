@@ -20,8 +20,8 @@ workflows:
           family: '${AWS_RESOURCE_NAME_PREFIX}-service'
           cluster-name: '${AWS_RESOURCE_NAME_PREFIX}-cluster'
           container-image-name-updates: 'container=app,image-and-tag=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${AWS_RESOURCE_NAME_PREFIX}:${CIRCLE_SHA1}'
-          verify-revision-is-deployed: false
-          container-env-var-updates: 'container=app,name=FIREBASE_KEY,value=${FIREBASE_KEY},container=app,name=DATABASE_HOST,value=${DATABASE_HOST},container=app,name=DATABASE_PASSWORD,value=${DATABASE_PASSWORD},container=app,name=NODE_ENV,value=production'
+          verify-revision-is-deployed: true
+          container-env-var-updates: 'container=app,name=FIREBASE_KEY,value=${FIREBASE_KEY},container=app,name=DATABASE_HOST,value=${DATABASE_HOST},container=app,name=DATABASE_PASSWORD,value=${DATABASE_PASSWORD},container=app,name=NODE_ENV,value=production,container=app,name=PORT,value=80'
           filters:
             branches:
               only:
