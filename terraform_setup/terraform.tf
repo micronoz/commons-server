@@ -47,27 +47,27 @@ resource "aws_cloudformation_stack" "vpc" {
   # }
 }
 
-resource "aws_cloudformation_stack" "natA" {
-  name          = "${local.aws_nat_stack_name}-A"
-  template_body = file("cloudonaut-templates/nat.yml")
-  capabilities  = ["CAPABILITY_NAMED_IAM"]
-  depends_on    = [aws_cloudformation_stack.vpc]
-  parameters = {
-    ParentVPCStack = local.aws_vpc_stack_name
-    SubnetZone     = "A"
-  }
-}
+# resource "aws_cloudformation_stack" "natA" {
+#   name          = "${local.aws_nat_stack_name}-A"
+#   template_body = file("cloudonaut-templates/nat.yml")
+#   capabilities  = ["CAPABILITY_NAMED_IAM"]
+#   depends_on    = [aws_cloudformation_stack.vpc]
+#   parameters = {
+#     ParentVPCStack = local.aws_vpc_stack_name
+#     SubnetZone     = "A"
+#   }
+# }
 
-resource "aws_cloudformation_stack" "natB" {
-  name          = "${local.aws_nat_stack_name}-B"
-  template_body = file("cloudonaut-templates/nat.yml")
-  capabilities  = ["CAPABILITY_NAMED_IAM"]
-  depends_on    = [aws_cloudformation_stack.vpc]
-  parameters = {
-    ParentVPCStack = local.aws_vpc_stack_name
-    SubnetZone     = "B"
-  }
-}
+# resource "aws_cloudformation_stack" "natB" {
+#   name          = "${local.aws_nat_stack_name}-B"
+#   template_body = file("cloudonaut-templates/nat.yml")
+#   capabilities  = ["CAPABILITY_NAMED_IAM"]
+#   depends_on    = [aws_cloudformation_stack.vpc]
+#   parameters = {
+#     ParentVPCStack = local.aws_vpc_stack_name
+#     SubnetZone     = "B"
+#   }
+# }
 
 resource "aws_cloudformation_stack" "ecs_cluster" {
   name          = local.aws_ecs_cluster_stack_name
