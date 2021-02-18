@@ -3,7 +3,7 @@ import { __prod__, __dbhost__, __firebaseKey__, __port__ } from './constants';
 import { createConnection } from 'typeorm';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
-import { AdventureResolver } from './resolvers/adventure';
+import { ActivityResolver } from './resolvers/activity';
 import { UserResolver } from './resolvers/user';
 import { decodeToken } from './middleware/auth';
 import { OrmConfig } from './ormconfig';
@@ -34,7 +34,7 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [AdventureResolver, UserResolver]
+      resolvers: [ActivityResolver, UserResolver]
     }),
     context: async ({ req }) => {
       {

@@ -1,14 +1,20 @@
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
-import { __dbhost__, __dbpassword__ } from './constants';
+import {
+  __dbhost__,
+  __dbname__,
+  __dbpassword__,
+  __dbport__,
+  __dbuser__
+} from './constants';
 import { join } from 'path';
 
 let OrmConfig = {
   type: 'postgres',
   host: __dbhost__,
-  port: 5432,
-  username: 'commons',
+  port: __dbport__,
+  username: __dbuser__,
   password: __dbpassword__,
-  database: 'commons',
+  database: __dbname__,
   synchronize: true,
   logging: true,
   entities: [join(__dirname, 'entity', '*.{ts,js}')],

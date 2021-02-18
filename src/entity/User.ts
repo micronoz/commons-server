@@ -4,8 +4,10 @@ import {
   PrimaryGeneratedColumn,
   Column,
   UpdateDateColumn,
-  CreateDateColumn
+  CreateDateColumn,
+  OneToMany
 } from 'typeorm';
+import { UserActivity } from './UserActivity';
 
 @ObjectType()
 @Entity()
@@ -32,4 +34,9 @@ export class User {
 
   @Column({ type: 'text' })
   password!: string;
+
+  @OneToMany(() => UserActivity, (userActivity) => userActivity.user, {
+    cascade: true
+  })
+  activityConnections: UserActivity[];
 }
