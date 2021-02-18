@@ -7,3 +7,6 @@ variable "aws_region" {
 variable "aws_resource_prefix" {
   description = "Prefix to be used in the naming of some of the created AWS resources e.g. demo-webapp"
 }
+variable "aurora_db_name" {}
+variable "aurora_db_username" {}
+variable "aurora_db_password" {}
