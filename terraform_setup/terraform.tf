@@ -123,7 +123,7 @@ resource "aws_cloudformation_stack" "ecs_service" {
     ParentVPCStack     = local.aws_vpc_stack_name
     ParentClusterStack = local.aws_ecs_cluster_stack_name
     DesiredCount       = 2
-    SubnetsReach       = "Private"
+    SubnetsReach       = "Public"
     ParentClientStack1 = local.aws_client_sg_stack_name
   }
 }
