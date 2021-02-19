@@ -1,20 +1,25 @@
-import { Field, ObjectType, ID } from 'type-graphql';
+import { Field, ObjectType } from 'type-graphql';
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   UpdateDateColumn,
   CreateDateColumn,
-  OneToMany
+  OneToMany,
+  BaseEntity,
+  PrimaryColumn
 } from 'typeorm';
 import { UserActivity } from './UserActivity';
 
 @ObjectType()
 @Entity()
-export class User {
-  @Field(() => ID)
-  @PrimaryGeneratedColumn()
-  id!: string;
+export class User extends BaseEntity {
+  @Field(() => String)
+  @PrimaryColumn({ unique: true })
+  email!: string;
+
+  @Field(() => String)
+  @Column()
+  fullName!: string;
 
   @Field(() => String)
   @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
@@ -27,13 +32,6 @@ export class User {
     nullable: true
   })
   updatedAt?: Date;
-
-  @Field()
-  @Column({ type: 'text', unique: true })
-  username!: string;
-
-  @Column({ type: 'text' })
-  password!: string;
 
   @OneToMany(() => UserActivity, (userActivity) => userActivity.user, {
     cascade: true

@@ -13,6 +13,12 @@ services:
     container_name: ts-node-docker
     environment:
       - DATABASE_HOST=pg
+      - DATABASE_USER=commons
+      - DATABASE_NAME=commons
+      - DATABASE_PASSWORD=commons
+      - DATABASE_PORT=5432
+      - NODE_ENV=dev
+      - PORT=4000
     expose:
       - '4000'
     ports:
