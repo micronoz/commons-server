@@ -1,12 +1,13 @@
 import 'reflect-metadata';
 import { __prod__, __dbhost__, __firebaseKey__, __port__ } from './constants';
-import { createConnection } from 'typeorm';
+import { createConnection, EntityManager } from 'typeorm';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
 import { ActivityResolver } from './resolvers/activity';
 import { UserResolver } from './resolvers/user';
 import { decodeToken } from './middleware/auth';
 import { OrmConfig } from './ormconfig';
+import { emit } from 'process';
 
 const express = require('express');
 const admin = require('firebase-admin');
