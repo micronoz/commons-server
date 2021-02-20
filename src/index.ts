@@ -1,13 +1,13 @@
 import 'reflect-metadata';
 import { __prod__, __dbhost__, __firebaseKey__, __port__ } from './constants';
-import { createConnection, EntityManager } from 'typeorm';
+import { createConnection } from 'typeorm';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
 import { ActivityResolver } from './resolvers/activity';
 import { UserResolver } from './resolvers/user';
 import { decodeToken } from './middleware/auth';
 import { OrmConfig } from './ormconfig';
-import { emit } from 'process';
+import { MessageResolver } from './resolvers/message';
 
 const express = require('express');
 const admin = require('firebase-admin');
@@ -35,7 +35,7 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [ActivityResolver, UserResolver]
+      resolvers: [ActivityResolver, UserResolver, MessageResolver]
     }),
     context: async ({ req }) => {
       {

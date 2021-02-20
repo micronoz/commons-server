@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Field, ObjectType, ID, Int } from 'type-graphql';
 import { UserActivity } from './UserActivity';
+import { Message } from './Message';
 
 @ObjectType()
 @Entity()
@@ -77,4 +78,9 @@ export class Activity extends BaseEntity {
     cascade: true
   })
   userConnections: UserActivity[];
+
+  @OneToMany(() => Message, (message) => message.activity, {
+    cascade: true
+  })
+  messageConnections: Message[];
 }

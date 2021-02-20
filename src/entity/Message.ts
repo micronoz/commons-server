@@ -1,12 +1,19 @@
-import { BaseEntity, Entity, PrimaryColumn, Column, ManyToOne } from 'typeorm';
+import {
+  BaseEntity,
+  Entity,
+  Column,
+  ManyToOne,
+  PrimaryGeneratedColumn
+} from 'typeorm';
 import { ObjectType, Field, ID } from 'type-graphql';
 import { User } from './User';
+import { Activity } from './Activity';
 
 @ObjectType()
 @Entity()
 export class Message extends BaseEntity {
   @Field(() => ID)
-  @PrimaryColumn({ unique: true })
+  @PrimaryGeneratedColumn()
   id!: string;
 
   @Field(() => String)
@@ -18,4 +25,10 @@ export class Message extends BaseEntity {
     onDelete: 'CASCADE'
   })
   user!: User;
+
+  @Field(() => Activity)
+  @ManyToOne(() => Activity, (activity) => activity.messageConnections, {
+    onDelete: 'CASCADE'
+  })
+  activity!: Activity;
 }
