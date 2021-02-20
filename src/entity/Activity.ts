@@ -7,7 +7,7 @@ import {
   CreateDateColumn,
   OneToMany
 } from 'typeorm';
-import { Field, ObjectType, ID, Float, Int } from 'type-graphql';
+import { Field, ObjectType, ID, Int } from 'type-graphql';
 import { UserActivity } from './UserActivity';
 
 @ObjectType()
@@ -69,9 +69,9 @@ export class Activity extends BaseEntity {
   @Column({ nullable: true })
   photoUrl: string;
 
-  @Field(() => Float)
+  @Field(() => String)
   @Column()
-  price: number;
+  price: string;
 
   @OneToMany(() => UserActivity, (userActivity) => userActivity.activity, {
     cascade: true

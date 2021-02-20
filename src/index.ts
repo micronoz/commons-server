@@ -27,7 +27,7 @@ const main = async () => {
     credential: admin.credential.cert(serviceAccount)
   });
 
-  const connection = await createConnection(OrmConfig);
+  await createConnection(OrmConfig);
   const app = express();
 
   //const RedisStore = connectRedis(session);
@@ -39,7 +39,7 @@ const main = async () => {
     context: async ({ req }) => {
       {
         const user = await decodeToken(req);
-        return { user, em: connection.manager };
+        return { user };
       }
     }
   });
