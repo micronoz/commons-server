@@ -9,6 +9,7 @@ import {
   PrimaryColumn
 } from 'typeorm';
 import { UserActivity } from './UserActivity';
+import { Message } from './Message';
 
 @ObjectType()
 @Entity()
@@ -37,4 +38,9 @@ export class User extends BaseEntity {
     cascade: true
   })
   activityConnections: UserActivity[];
+
+  @OneToMany(() => Message, (message) => message.user, {
+    cascade: true
+  })
+  messageConnections: Message[];
 }
