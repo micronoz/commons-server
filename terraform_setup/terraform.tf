@@ -24,7 +24,7 @@ locals {
   aws_kms_stack_name         = "commons-kms-stack-final"
   aws_aurora_stack_name      = "${var.aws_resource_prefix}-aurora-stack"
   aws_ssh_stack_name         = "${var.aws_resource_prefix}-ssh-stack"
-  aws_ec2_stack_name         = "${var.aws_resource_prefix}-ec2-stack"
+  aws_ec2_stack_name         = "${var.aws_resource_prefix}-ec2-stack-v2"
   # The name of the ECR repository to be created
   aws_ecr_repository_name = var.aws_resource_prefix
   # The name of the ECS cluster to be created
@@ -71,7 +71,7 @@ resource "aws_cloudformation_stack" "ec2_tunnel" {
 
   parameters = {
     ParentVPCStack     = local.aws_vpc_stack_name
-    KeyName            = "ssh-key"
+    KeyName            = "my-key"
     ParentClientStack1 = local.aws_client_sg_stack_name
   }
 }
