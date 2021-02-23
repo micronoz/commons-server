@@ -1,4 +1,4 @@
-import { Arg, Mutation, Query, Resolver } from 'type-graphql';
+import { Arg, Mutation, Query, Resolver, Int } from 'type-graphql';
 import { Activity } from '../entity/Activity';
 
 @Resolver()
@@ -14,8 +14,26 @@ export class ActivityResolver {
   }
 
   @Mutation(() => Activity)
-  async createActivity(@Arg('title') title: string): Promise<Activity> {
-    const activity = Activity.create({ title });
+  async createActivity(
+    @Arg('title') title: string,
+    @Arg('description') description: string,
+    @Arg('mediumType') mediumType: string,
+    @Arg('xLocation') x: number,
+    @Arg('yLocation') y: number,
+    @Arg('address') address: string,
+    @Arg('eventDateTime', { nullable: true }) eventDateTime: Date,
+    @Arg('visibility', () => Int) visibility: number
+  ): Promise<Activity> {
+    const point = `(${x}, ${y})`;
+    const activity = Activity.create({
+      title,
+      description,
+      mediumType,
+      location: point,
+      address,
+      eventDateTime,
+      visibility
+    });
     await activity.save();
     return activity;
   }
@@ -42,10 +60,12 @@ export class ActivityResolver {
     return true;
   }
 
+  //TODO: Delete
   @Mutation(() => Boolean)
   async deleteAllActivities(): Promise<boolean> {
     try {
-      Activity.clear();
+      const activities = await Activity.find();
+      Activity.remove(activities);
       return true;
     } catch {
       return false;

@@ -19,12 +19,14 @@ export class UserActivity extends BaseEntity {
   @PrimaryColumn()
   activityId: string;
 
+  @Field(() => User)
   @ManyToOne(() => User, (user) => user.activityConnections, {
     onDelete: 'CASCADE'
   })
   @JoinColumn({ name: 'userId' })
   user: User;
 
+  @Field(() => Activity)
   @ManyToOne(() => Activity, (activity) => activity.userConnections, {
     onDelete: 'CASCADE'
   })
