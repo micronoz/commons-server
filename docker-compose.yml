@@ -29,7 +29,7 @@ services:
   pg:
     env_file:
       - database.env
-    image: 'mdillon/postgis'
+    image: 'postgis/postgis'
     container_name: 'postgres'
     ports:
       - '5432:5432'
