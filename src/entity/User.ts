@@ -33,6 +33,7 @@ export class User extends BaseEntity {
   })
   updatedAt?: Date;
 
+  @Field(() => [UserActivity])
   @OneToMany(() => UserActivity, (userActivity) => userActivity.user, {
     cascade: true
   })

@@ -18,14 +18,13 @@ export class Activity extends BaseEntity {
   id: string;
 
   @Field(() => String)
-  @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
+  @CreateDateColumn({ type: 'timestamp with time zone', default: 'NOW()' })
   createdAt: Date;
 
   @Field(() => String)
   @UpdateDateColumn({
-    type: 'timestamp without time zone',
-    onUpdate: 'NOW()',
-    nullable: true
+    type: 'timestamp with time zone',
+    onUpdate: 'NOW()'
   })
   updatedAt: Date;
 
@@ -42,36 +41,32 @@ export class Activity extends BaseEntity {
   mediumType: string;
 
   @Field(() => String)
-  @Column()
+  @Column({ type: 'point' })
   location: string;
 
-  @Field(() => String)
-  @Column({ type: 'timestamp' })
+  @Field(() => String, { nullable: true })
+  @Column({ type: 'timestamp with time zone', nullable: true })
   eventDateTime: Date;
+
+  @Field(() => String)
+  @Column({ nullable: true })
+  address: string;
 
   @Field(() => Int)
   @Column({ type: 'int', nullable: true })
   maxGroupSize: number;
 
   @Field(() => Int)
-  @Column({ type: 'int', nullable: true })
-  matchingSize: number;
+  @Column({ type: 'int' })
+  visibility: number;
 
-  @Field(() => String)
-  @Column()
-  visibility: string;
+  // @Field(() => Boolean)
+  // @Column()
+  // requireApproval: boolean;
 
-  @Field(() => Boolean)
-  @Column()
-  requireApproval: boolean;
-
-  @Field(() => String)
-  @Column({ nullable: true })
-  photoUrl: string;
-
-  @Field(() => String)
-  @Column()
-  price: string;
+  // @Field(() => String)
+  // @Column({ nullable: true })
+  // photoUrl: string;
 
   @OneToMany(() => UserActivity, (userActivity) => userActivity.activity, {
     cascade: true
