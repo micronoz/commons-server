@@ -23,6 +23,8 @@ locals {
   aws_client_sg_stack_name   = "${var.aws_resource_prefix}-client-sg-stack"
   aws_kms_stack_name         = "commons-kms-stack-final"
   aws_aurora_stack_name      = "${var.aws_resource_prefix}-aurora-stack"
+  aws_ssh_stack_name         = "${var.aws_resource_prefix}-ssh-stack"
+  aws_ec2_stack_name         = "${var.aws_resource_prefix}-ec2-stack-v2"
   # The name of the ECR repository to be created
   aws_ecr_repository_name = var.aws_resource_prefix
   # The name of the ECS cluster to be created
@@ -45,6 +47,37 @@ resource "aws_cloudformation_stack" "vpc" {
   # parameters = {
   #   Name = "hasan-server-${var.aws_resource_prefix}"
   # }
+}
+
+# resource "aws_cloudformation_stack" "ssh_bastion" {
+#   name          = local.aws_ssh_stack_name
+#   template_body = file("cloudonaut-templates/ssh-bastion.yml")
+#   depends_on    = [aws_cloudformation_stack.vpc]
+#   capabilities  = ["CAPABILITY_NAMED_IAM"]
+
+#   parameters = {
+#     ParentVPCStack = local.aws_vpc_stack_name
+#     KeyName        = "ssh-key"
+#     # ParentZoneStack = local.aws_vpc_stack_name
+#     # SubDomainNameWithDot = "hasan-server-${var.aws_resource_prefix}."
+#   }
+# }
+
+resource "aws_cloudformation_stack" "ec2_tunnel" {
+  name          = local.aws_ec2_stack_name
+  template_body = file("cloudonaut-templates/ec2-tunnel.yml")
+  depends_on    = [aws_cloudformation_stack.client_sg]
+  capabilities  = ["CAPABILITY_NAMED_IAM"]
+
+  parameters = {
+    ParentVPCStack     = local.aws_vpc_stack_name
+    KeyName            = "my-key"
+    ParentClientStack1 = local.aws_client_sg_stack_name
+  }
+}
+
+output "ec2" {
+  value = aws_cloudformation_stack.ec2_tunnel.outputs
 }
 
 # resource "aws_cloudformation_stack" "natA" {
@@ -141,6 +174,7 @@ resource "aws_cloudformation_stack" "aurora_postgres" {
     DBMasterUsername     = var.aurora_db_username
     DBMasterUserPassword = var.aurora_db_password
     ParentKmsKeyStack    = local.aws_kms_stack_name
+    EnableDataApi        = "true"
   }
 }
 

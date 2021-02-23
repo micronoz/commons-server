@@ -7,6 +7,7 @@ import { ActivityResolver } from './resolvers/activity';
 import { UserResolver } from './resolvers/user';
 import { decodeToken } from './middleware/auth';
 import { OrmConfig } from './ormconfig';
+import { MessageResolver } from './resolvers/message';
 
 const express = require('express');
 const admin = require('firebase-admin');
@@ -34,7 +35,7 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [ActivityResolver, UserResolver]
+      resolvers: [ActivityResolver, UserResolver, MessageResolver]
     }),
     context: async ({ req }) => {
       {
