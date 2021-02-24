@@ -7,7 +7,7 @@ import {
   CreateDateColumn,
   OneToMany
 } from 'typeorm';
-import { Field, ObjectType, ID, Int } from 'type-graphql';
+import { Field, ObjectType, ID } from 'type-graphql';
 import { UserActivity } from './UserActivity';
 import { Message } from './Message';
 
@@ -41,7 +41,7 @@ export class Activity extends BaseEntity {
   @Column()
   mediumType: string;
 
-  @Field(() => String)
+  // @Field(() => String)
   @Column({ type: 'point' })
   location: string;
 
@@ -52,22 +52,6 @@ export class Activity extends BaseEntity {
   @Field(() => String)
   @Column({ nullable: true })
   address: string;
-
-  @Field(() => Int)
-  @Column({ type: 'int', nullable: true })
-  maxGroupSize: number;
-
-  @Field(() => Int)
-  @Column({ type: 'int' })
-  visibility: number;
-
-  // @Field(() => Boolean)
-  // @Column()
-  // requireApproval: boolean;
-
-  // @Field(() => String)
-  // @Column({ nullable: true })
-  // photoUrl: string;
 
   @OneToMany(() => UserActivity, (userActivity) => userActivity.activity, {
     cascade: true

@@ -1,4 +1,4 @@
-import { Arg, Mutation, Query, Resolver, Int } from 'type-graphql';
+import { Arg, Mutation, Query, Resolver } from 'type-graphql';
 import { Activity } from '../entity/Activity';
 
 @Resolver()
@@ -21,8 +21,7 @@ export class ActivityResolver {
     @Arg('xLocation') x: number,
     @Arg('yLocation') y: number,
     @Arg('address') address: string,
-    @Arg('eventDateTime', { nullable: true }) eventDateTime: Date,
-    @Arg('visibility', () => Int) visibility: number
+    @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
   ): Promise<Activity> {
     const point = `(${x}, ${y})`;
     const activity = Activity.create({
@@ -31,8 +30,7 @@ export class ActivityResolver {
       mediumType,
       location: point,
       address,
-      eventDateTime,
-      visibility
+      eventDateTime
     });
     await activity.save();
     return activity;
