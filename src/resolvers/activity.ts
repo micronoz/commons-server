@@ -1,3 +1,4 @@
+// import { UserActivity } from './../entity/UserActivity';
 import { Arg, Mutation, Query, Resolver } from 'type-graphql';
 import { Activity } from '../entity/Activity';
 
@@ -8,8 +9,10 @@ export class ActivityResolver {
     return Activity.findOneOrFail({ id });
   }
 
+  //TODO: Add location and category filter
+  //TODO: Do not give all these at once
   @Query(() => [Activity])
-  activities(): Promise<Activity[]> {
+  async discoverActivities(): Promise<Activity[]> {
     return Activity.find();
   }
 
@@ -32,6 +35,7 @@ export class ActivityResolver {
       address,
       eventDateTime
     });
+    //TODO: Add organizer as userActivity connection.
     await activity.save();
     return activity;
   }
