@@ -1,4 +1,5 @@
-import { Arg, Mutation, Query, Resolver, Int } from 'type-graphql';
+// import { UserActivity } from './../entity/UserActivity';
+import { Arg, Mutation, Query, Resolver } from 'type-graphql';
 import { Activity } from '../entity/Activity';
 
 @Resolver()
@@ -8,8 +9,10 @@ export class ActivityResolver {
     return Activity.findOneOrFail({ id });
   }
 
+  //TODO: Add location and category filter
+  //TODO: Do not give all these at once
   @Query(() => [Activity])
-  activities(): Promise<Activity[]> {
+  async discoverActivities(): Promise<Activity[]> {
     return Activity.find();
   }
 
@@ -21,8 +24,7 @@ export class ActivityResolver {
     @Arg('xLocation') x: number,
     @Arg('yLocation') y: number,
     @Arg('address') address: string,
-    @Arg('eventDateTime', { nullable: true }) eventDateTime: Date,
-    @Arg('visibility', () => Int) visibility: number
+    @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
   ): Promise<Activity> {
     const point = `(${x}, ${y})`;
     const activity = Activity.create({
@@ -31,9 +33,9 @@ export class ActivityResolver {
       mediumType,
       location: point,
       address,
-      eventDateTime,
-      visibility
+      eventDateTime
     });
+    //TODO: Add organizer as userActivity connection.
     await activity.save();
     return activity;
   }
