@@ -8,6 +8,7 @@ import { UserResolver } from './resolvers/user';
 import { decodeToken } from './middleware/auth';
 import { OrmConfig } from './ormconfig';
 import { MessageResolver } from './resolvers/message';
+import { User } from './entity/User';
 
 const express = require('express');
 const admin = require('firebase-admin');
@@ -39,8 +40,9 @@ const main = async () => {
     }),
     context: async ({ req }) => {
       {
-        const user = await decodeToken(req);
-        return { user };
+        const firebaseUser = await decodeToken(req);
+        const user = await User.findOne({ email: firebaseUser.email });
+        return { user, firebaseUser };
       }
     }
   });

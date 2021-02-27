@@ -1,4 +1,4 @@
-import { Field, ObjectType } from 'type-graphql';
+import { Field, ID, ObjectType } from 'type-graphql';
 import {
   Entity,
   Column,
@@ -6,7 +6,7 @@ import {
   CreateDateColumn,
   OneToMany,
   BaseEntity,
-  PrimaryColumn
+  PrimaryGeneratedColumn
 } from 'typeorm';
 import { UserActivity } from './UserActivity';
 import { Message } from './Message';
@@ -14,13 +14,32 @@ import { Message } from './Message';
 @ObjectType()
 @Entity()
 export class User extends BaseEntity {
-  @Field(() => String)
-  @PrimaryColumn({ unique: true })
-  email!: string;
+  @Field(() => ID)
+  @PrimaryGeneratedColumn()
+  id: string;
 
   @Field(() => String)
   @Column()
-  fullName!: string;
+  handle: string;
+
+  @Field(() => String)
+  @Column({ unique: true })
+  email: string;
+
+  @Field(() => String)
+  @Column({})
+  @Field(() => String)
+  @Column()
+  firstName: string;
+
+  @Field(() => String)
+  @Column()
+  lastName!: string;
+
+  @Field(() => String)
+  fullName(): String {
+    return `${this.firstName} ${this.lastName}`;
+  }
 
   @Field(() => String)
   @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
