@@ -6,16 +6,8 @@ import { MyContext } from '../types';
 @Resolver()
 export class UserResolver {
   @Query(() => User)
-  myUser(@Ctx() { user }: MyContext): User {
+  user(@Ctx() { user }: MyContext): User {
     return user;
-  }
-
-  @Query(() => User)
-  getUser(
-    // @Ctx() { user }: MyContext,
-    @Arg('email') email: string
-  ): Promise<User> {
-    return User.findOneOrFail({ email });
   }
 
   @Mutation(() => User)
@@ -38,10 +30,10 @@ export class UserResolver {
     return newUser;
   }
 
-  // //TODO: Delete
-  // @Query(() => [User])
-  // async users(): Promise<User[]> {
-  //   const users = await User.find();
-  //   return users;
-  // }
+  //TODO: Delete
+  @Query(() => [User])
+  async users(): Promise<User[]> {
+    const users = await User.find();
+    return users;
+  }
 }
