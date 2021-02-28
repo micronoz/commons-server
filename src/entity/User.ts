@@ -9,11 +9,11 @@ import {
   PrimaryColumn
 } from 'typeorm';
 import { UserActivity } from './UserActivity';
-import { Message } from './Message';
+import { UserProfile } from '../model/UserProfile';
 
 @ObjectType()
 @Entity()
-export class User extends BaseEntity {
+export class User extends BaseEntity implements UserProfile {
   @Field(() => String)
   @PrimaryColumn({ unique: true })
   email!: string;
@@ -39,9 +39,4 @@ export class User extends BaseEntity {
     cascade: true
   })
   activityConnections: UserActivity[];
-
-  @OneToMany(() => Message, (message) => message.user, {
-    cascade: true
-  })
-  messageConnections: Message[];
 }

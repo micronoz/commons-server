@@ -30,7 +30,6 @@ export class UserActivity extends BaseEntity {
   @ManyToOne(() => Activity, (activity) => activity.userConnections, {
     onDelete: 'CASCADE'
   })
-  @JoinColumn({ name: 'activityId' })
   activity: Activity;
 
   @Field()
