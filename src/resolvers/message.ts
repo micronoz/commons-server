@@ -1,7 +1,7 @@
 import { Resolver, Query, Ctx, Arg, Mutation } from 'type-graphql';
 import { Message } from '../entity/Message';
 import { MyContext } from '../types';
-import { UserActivity } from 'src/entity/UserActivity';
+import { UserActivity } from '../entity/UserActivity';
 
 @Resolver()
 export class MessageResolver {
