@@ -7,10 +7,11 @@ import {
   CreateDateColumn,
   OneToMany
 } from 'typeorm';
-import { Field, ObjectType, ID } from 'type-graphql';
+import { Field, ObjectType, ID, Ctx } from 'type-graphql';
 import { UserActivity } from './UserActivity';
 import { Message } from './Message';
-// import { Message } from './Message';
+import { MyContext } from 'src/types';
+import { ApolloError } from 'apollo-server-express';
 
 @ObjectType()
 @Entity()
@@ -54,12 +55,26 @@ export class Activity extends BaseEntity {
   @Column({ nullable: true })
   address: string;
 
+  @Field(() => [UserActivity])
   @OneToMany(() => UserActivity, (userActivity) => userActivity.activity, {
     cascade: true
   })
-  userConnections: UserActivity[];
+  userConnections: Promise<UserActivity[]>;
 
   @OneToMany(() => Message, (message) => message.activity, { cascade: true })
+  messageConnectionsDb: Promise<Message[]>;
+
   @Field(() => [Message])
-  messageConnections: Message[];
+  async messageConnections(@Ctx() { user }: MyContext): Promise<Message[]> {
+    try {
+      await UserActivity.findOneOrFail({
+        where: { user, activity: this } //TODO add condition for if the user has been accepted to the activity
+      });
+      return this.messageConnectionsDb;
+    } catch {
+      throw new ApolloError(
+        "You do not have access to this Activity's messages."
+      );
+    }
+  }
 }

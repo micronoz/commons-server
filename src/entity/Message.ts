@@ -25,15 +25,11 @@ export class Message extends BaseEntity {
   @ManyToOne(() => User, {
     onDelete: 'CASCADE'
   })
-  sender: User;
+  sender: Promise<User>;
 
   @Field(() => Activity)
-  @ManyToOne(() => Activity, (activity) => activity.messageConnections)
-  activity: Activity;
-
-  // @Field(() => Activity)
-  // @ManyToOne(() => Activity, (activity) => activity.messageConnections, {
-  //   onDelete: 'CASCADE'
-  // })
-  // activity!: Activity;
+  @ManyToOne(() => Activity, (activity) => activity.messageConnectionsDb, {
+    onDelete: 'CASCADE'
+  })
+  activity: Promise<Activity>;
 }
