@@ -18,10 +18,6 @@ export class UserResolver {
     return User.findOneOrFail({ email });
   }
 
-  //   @Query(() => User)
-  //   users(): Promise<User> {
-  //     return User.findOneOrFail({ email: 'hi@gmail.com' });
-  //   }
   @Mutation(() => User)
   async createUser(
     @Ctx() { user, firebaseUser }: MyContext,
