@@ -26,4 +26,4 @@ jobs:
       with:
         to: ${{ secrets.TELEGRAM_TO }}
         token: ${{ secrets.TELEGRAM_TOKEN }}
-        args: The ${{ github.event_name }} event triggered first step.
+        args: There was a ${{ github.event_name }} event triggered on the main branch in tribal-instinct-server.
