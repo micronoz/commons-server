@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from 'type-graphql';
+import { Field, ID, ObjectType, Arg, Ctx } from 'type-graphql';
 import {
   Entity,
   Column,
@@ -9,7 +9,8 @@ import {
   PrimaryGeneratedColumn
 } from 'typeorm';
 import { UserActivity } from './UserActivity';
-import { Message } from './Message';
+import { UserPrivateInfo } from '../model/UserPrivateInfo';
+import { MyContext } from 'src/types';
 
 @ObjectType()
 @Entity()
@@ -22,7 +23,6 @@ export class User extends BaseEntity {
   @Column({ unique: true })
   handle: string;
 
-  @Field(() => String)
   @Column({ unique: true })
   email: string;
 
@@ -32,11 +32,16 @@ export class User extends BaseEntity {
 
   @Field(() => String)
   @Column()
-  lastName!: string;
+  lastName: string;
 
   @Field(() => String)
   fullName(): String {
     return `${this.firstName} ${this.lastName}`;
+  }
+
+  @Field(() => UserPrivateInfo)
+  private(@Ctx() { user }: MyContext): UserPrivateInfo {
+    return user as UserPrivateInfo;
   }
 
   @Field(() => String)
@@ -51,14 +56,19 @@ export class User extends BaseEntity {
   })
   updatedAt?: Date;
 
-  @Field(() => [UserActivity])
   @OneToMany(() => UserActivity, (userActivity) => userActivity.user, {
     cascade: true
   })
-  activityConnections: UserActivity[];
+  activityConnectionsDb: Promise<UserActivity[]>;
 
-  @OneToMany(() => Message, (message) => message.user, {
-    cascade: true
-  })
-  messageConnections: Message[];
+  @Field(() => [UserActivity])
+  async activityConnections(
+    @Arg('limit', { nullable: true }) limit?: number
+  ): Promise<UserActivity[]> {
+    if (limit === undefined) {
+      return this.activityConnectionsDb;
+    }
+    const userActivities = await this.activityConnectionsDb;
+    return userActivities.slice(0, limit);
+  }
 }

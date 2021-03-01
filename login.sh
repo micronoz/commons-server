@@ -1,1 +1,1 @@
-curl 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=AIzaSyB52bfo-ajuvrMIsfAJKuG8XRdoUIwJdF4 ' -H 'Content-Type: application/json' --data-binary '{"email":"hi@gmail.com","password":"nabi1234","returnSecureToken":true}'
+curl 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=AIzaSyB52bfo-ajuvrMIsfAJKuG8XRdoUIwJdF4 ' -H 'Content-Type: application/json' --data-binary '{"email":"hi2@gmail.com","password":"nabi1234","returnSecureToken":true}'

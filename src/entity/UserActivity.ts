@@ -3,9 +3,9 @@ import {
   BaseEntity,
   Column,
   Entity,
-  JoinColumn,
   ManyToOne,
-  PrimaryColumn
+  PrimaryGeneratedColumn,
+  JoinColumn
 } from 'typeorm';
 import { Activity } from './Activity';
 import { User } from './User';
@@ -13,25 +13,22 @@ import { User } from './User';
 @ObjectType()
 @Entity()
 export class UserActivity extends BaseEntity {
-  @PrimaryColumn()
-  userId: string;
-
-  @PrimaryColumn()
-  activityId: string;
+  @PrimaryGeneratedColumn()
+  id: string;
 
   @Field(() => User)
-  @ManyToOne(() => User, (user) => user.activityConnections, {
+  @ManyToOne(() => User, (user) => user.activityConnectionsDb, {
     onDelete: 'CASCADE'
   })
   @JoinColumn({ name: 'userId' })
-  user: User;
+  user: Promise<User>;
 
   @Field(() => Activity)
   @ManyToOne(() => Activity, (activity) => activity.userConnections, {
     onDelete: 'CASCADE'
   })
   @JoinColumn({ name: 'activityId' })
-  activity: Activity;
+  activity: Promise<Activity>;
 
   @Field()
   @Column()
