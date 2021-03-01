@@ -30,10 +30,16 @@ export class UserResolver {
     return newUser;
   }
 
-  // //TODO: Delete
-  // @Query(() => [User])
-  // async users(): Promise<User[]> {
-  //   const users = await User.find();
-  //   return users;
-  // }
+  //TODO: Delete
+  @Query(() => [User])
+  async users(): Promise<User[]> {
+    const users = await User.find();
+    return users;
+  }
+
+  @Mutation(() => Boolean)
+  async deleteAllUsers(): Promise<boolean> {
+    await User.remove(await User.find());
+    return true;
+  }
 }

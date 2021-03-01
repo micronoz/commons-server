@@ -8,27 +8,28 @@ import {
 import { ObjectType, Field, ID } from 'type-graphql';
 import { User } from './User';
 import { Activity } from './Activity';
+// import { Activity } from './Activity';
 
 @ObjectType()
 @Entity()
 export class Message extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
-  id!: string;
+  id: string;
 
   @Field(() => String)
   @Column()
-  message!: string;
+  message: string;
 
   @Field(() => User)
-  @ManyToOne(() => User, (user) => user.messageConnections, {
+  @ManyToOne(() => User, {
     onDelete: 'CASCADE'
   })
-  user!: User;
+  sender: Promise<User>;
 
   @Field(() => Activity)
-  @ManyToOne(() => Activity, (activity) => activity.messageConnections, {
+  @ManyToOne(() => Activity, (activity) => activity.messageConnectionsDb, {
     onDelete: 'CASCADE'
   })
-  activity!: Activity;
+  activity: Promise<Activity>;
 }

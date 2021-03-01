@@ -1,6 +1,8 @@
 // import { UserActivity } from './../entity/UserActivity';
-import { Arg, Mutation, Query, Resolver } from 'type-graphql';
+import { Arg, Mutation, Query, Resolver, Ctx } from 'type-graphql';
 import { Activity } from '../entity/Activity';
+import { UserActivity } from '../entity/UserActivity';
+import { MyContext } from '../types';
 
 @Resolver()
 export class ActivityResolver {
@@ -18,6 +20,7 @@ export class ActivityResolver {
 
   @Mutation(() => Activity)
   async createActivity(
+    @Ctx() { user }: MyContext,
     @Arg('title') title: string,
     @Arg('description') description: string,
     @Arg('mediumType') mediumType: string,
@@ -27,7 +30,7 @@ export class ActivityResolver {
     @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
   ): Promise<Activity> {
     const point = `(${x}, ${y})`;
-    const activity = Activity.create({
+    var activity = Activity.create({
       title,
       description,
       mediumType,
@@ -35,8 +38,14 @@ export class ActivityResolver {
       address,
       eventDateTime
     });
-    //TODO: Add organizer as userActivity connection.
-    await activity.save();
+    activity = await activity.save();
+    const userActivity = UserActivity.create({
+      isOrganizing: true,
+      attendanceStatus: 0
+    });
+    userActivity.activity = Promise.resolve(activity);
+    userActivity.user = Promise.resolve(user);
+    await userActivity.save();
     return activity;
   }
 
