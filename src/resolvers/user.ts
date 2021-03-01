@@ -10,6 +10,18 @@ export class UserResolver {
     return user;
   }
 
+  @Query(() => Boolean)
+  async isUserHandleTaken(@Arg('userHandle') handle: string): Promise<Boolean> {
+    const userFound = await User.findOne({ where: { handle: handle } });
+    console.log(userFound);
+
+    if (userFound) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   @Mutation(() => User)
   async createUser(
     @Ctx() { user, firebaseUser }: MyContext,
