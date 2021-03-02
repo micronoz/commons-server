@@ -1,3 +1,4 @@
+import { Location } from './../model/Location';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -12,6 +13,7 @@ import { UserActivity } from './UserActivity';
 import { Message } from './Message';
 import { MyContext } from 'src/types';
 import { ApolloError } from 'apollo-server-express';
+import { Point } from 'geojson';
 
 @ObjectType()
 @Entity()
@@ -43,9 +45,30 @@ export class Activity extends BaseEntity {
   @Column()
   mediumType: string;
 
-  // @Field(() => String)
-  @Column({ type: 'point' })
-  location: string;
+  @Column({
+    type: 'point',
+    transformer: {
+      to: (val) => val,
+      from(val): String {
+        return `(${val.x}, ${val.y})`;
+      }
+    }
+  })
+  locationDb: Point;
+
+  @Field(() => Location)
+  location(): Location {
+    console.log(this.locationDb);
+    const loc = this.locationDb;
+    const parsed = loc.toString().slice(1, loc.toString().length - 1);
+    const coordinates = parsed.split(',');
+
+    console.log(coordinates);
+    const x = +coordinates[0];
+    const y = +coordinates[1];
+
+    return new Location(x, y);
+  }
 
   @Field(() => String, { nullable: true })
   @Column({ type: 'timestamp with time zone', nullable: true })
