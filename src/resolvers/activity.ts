@@ -1,5 +1,5 @@
-// import { UserActivity } from './../entity/UserActivity';
-import { Arg, Mutation, Query, Resolver, Ctx } from 'type-graphql';
+import { Point } from 'geojson';
+import { Arg, Mutation, Query, Resolver, Ctx, Float } from 'type-graphql';
 import { Activity } from '../entity/Activity';
 import { UserActivity } from '../entity/UserActivity';
 import { MyContext } from '../types';
@@ -24,8 +24,8 @@ export class ActivityResolver {
     @Arg('title') title: string,
     @Arg('description') description: string,
     @Arg('mediumType') mediumType: string,
-    @Arg('xLocation') x: number,
-    @Arg('yLocation') y: number,
+    @Arg('xLocation', () => Float) x: number,
+    @Arg('yLocation', () => Float) y: number,
     @Arg('address') address: string,
     @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
   ): Promise<Activity> {
@@ -34,10 +34,10 @@ export class ActivityResolver {
       title,
       description,
       mediumType,
-      location: point,
       address,
       eventDateTime
     });
+    activity.locationDb = (point as unknown) as Point;
     activity = await activity.save();
     const userActivity = UserActivity.create({
       isOrganizing: true,
