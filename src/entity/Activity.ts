@@ -14,6 +14,7 @@ import { Message } from './Message';
 import { MyContext } from 'src/types';
 import { ApolloError } from 'apollo-server-express';
 import { Point } from 'geojson';
+import { User } from './User';
 
 @ObjectType()
 @Entity()
@@ -23,7 +24,10 @@ export class Activity extends BaseEntity {
   id: string;
 
   @Field(() => String)
-  @CreateDateColumn({ type: 'timestamp with time zone', default: 'NOW()' })
+  @CreateDateColumn({
+    type: 'timestamp with time zone',
+    default: () => 'NOW()'
+  })
   createdAt: Date;
 
   @Field(() => String)
@@ -99,5 +103,13 @@ export class Activity extends BaseEntity {
         "You do not have access to this Activity's messages."
       );
     }
+  }
+
+  @Field(() => User)
+  async organizer(): Promise<User> {
+    const userActivity = await UserActivity.findOneOrFail({
+      where: { activity: this, isOrganizing: true }
+    });
+    return userActivity.user;
   }
 }
