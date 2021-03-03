@@ -3,7 +3,8 @@ import {
   Entity,
   Column,
   ManyToOne,
-  PrimaryGeneratedColumn
+  PrimaryGeneratedColumn,
+  CreateDateColumn
 } from 'typeorm';
 import { ObjectType, Field, ID } from 'type-graphql';
 import { User } from './User';
@@ -32,4 +33,11 @@ export class Message extends BaseEntity {
     onDelete: 'CASCADE'
   })
   activity: Promise<Activity>;
+
+  @Field(() => String)
+  @CreateDateColumn({
+    type: 'timestamp with time zone',
+    default: () => 'NOW()'
+  })
+  createdAt: Date;
 }

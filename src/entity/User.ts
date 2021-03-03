@@ -45,7 +45,10 @@ export class User extends BaseEntity {
   }
 
   @Field(() => String)
-  @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
+  @CreateDateColumn({
+    type: 'timestamp without time zone',
+    default: () => 'NOW()'
+  })
   createdAt!: Date;
 
   @Field(() => String)
