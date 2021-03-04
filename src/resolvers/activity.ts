@@ -34,7 +34,7 @@ export class ActivityResolver {
         timeout: 1000
       });
       console.log('Geolocator output:');
-      if (r) {
+      if (r && r.data?.results.length > 0) {
         console.log(r.data.results[0].geometry.location);
         return r.data.results[0].geometry.location;
       } else {
@@ -44,11 +44,12 @@ export class ActivityResolver {
         throw new UserInputError(`Invalid physical address`);
       }
     } catch (e) {
+      if (e instanceof UserInputError) {
+        throw e;
+      }
       console.log('Geolocator ERROR:');
-      console.log(e.response.data.error_message);
-      throw new ApolloError(
-        'Geolocator could not find coordinates for the physical address.'
-      );
+      console.log(e);
+      throw new ApolloError('Geolocator error.');
     }
   }
   @Mutation(() => Activity)
