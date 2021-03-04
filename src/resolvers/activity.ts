@@ -1,9 +1,12 @@
+import { ApolloError, UserInputError } from 'apollo-server-express';
 import { LocationInput } from './../input-types/LocationInput';
 import { Point } from 'geojson';
 import { Arg, Mutation, Query, Resolver, Ctx } from 'type-graphql';
 import { Activity } from '../entity/Activity';
 import { UserActivity } from '../entity/UserActivity';
 import { MyContext } from '../types';
+import { Client, LatLngLiteral } from '@googlemaps/google-maps-services-js';
+const client = new Client({});
 
 @Resolver()
 export class ActivityResolver {
@@ -19,36 +22,91 @@ export class ActivityResolver {
     return Activity.find();
   }
 
+  async getCoordinatesFromPhysicalAddress(
+    physicalAddress: string
+  ): Promise<LatLngLiteral> {
+    try {
+      const r = await client.geocode({
+        params: {
+          key: process.env.GOOGLE_MAPS_API_KEY || '',
+          address: physicalAddress
+        },
+        timeout: 1000
+      });
+      console.log('Geolocator output:');
+      if (r && r.data?.results.length > 0) {
+        console.log(r.data.results[0].geometry.location);
+        return r.data.results[0].geometry.location;
+      } else {
+        console.log(
+          `Could not find coordinates for address ${physicalAddress}`
+        );
+        throw new UserInputError(`Invalid physical address`);
+      }
+    } catch (e) {
+      if (e instanceof UserInputError) {
+        throw e;
+      }
+      console.log('Geolocator ERROR:');
+      console.log(e);
+      throw new ApolloError('Geolocator error.');
+    }
+  }
   @Mutation(() => Activity)
-  async createActivity(
+  async createPhysicalActivity(
     @Ctx() { user }: MyContext,
     @Arg('title') title: string,
-    @Arg('description') description: string,
-    @Arg('mediumType') mediumType: string,
+    @Arg('description', { nullable: true }) description: string,
     @Arg('organizerCoordinates', () => LocationInput, { nullable: true })
     organizerCoordinates: LocationInput,
-    @Arg('eventCoordinates', () => LocationInput, { nullable: true })
-    eventCoordinates: LocationInput,
     @Arg('physicalAddress', { nullable: true }) physicalAddress: string,
+    @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
+  ): Promise<Activity> {
+    var activity = Activity.create({
+      title,
+      description,
+      mediumType: 'in_person',
+      physicalAddress,
+      eventDateTime
+    });
+
+    if (organizerCoordinates) {
+      const organizerPoint = `(${organizerCoordinates.xLocation}, ${organizerCoordinates.yLocation})`;
+      activity.organizerCoordinatesDb = (organizerPoint as unknown) as Point;
+    }
+    if (physicalAddress) {
+      const eventCoordinates = await this.getCoordinatesFromPhysicalAddress(
+        physicalAddress
+      );
+      const eventPoint = `(${eventCoordinates.lng}, ${eventCoordinates.lat})`;
+      activity.eventCoordinatesDb = (eventPoint as unknown) as Point;
+    }
+
+    activity = await activity.save();
+    const userActivity = UserActivity.create({
+      isOrganizing: true,
+      attendanceStatus: 0
+    });
+    userActivity.activity = Promise.resolve(activity);
+    userActivity.user = Promise.resolve(user);
+    await userActivity.save();
+    return activity;
+  }
+  @Mutation(() => Activity)
+  async createOnlineActivity(
+    @Ctx() { user }: MyContext,
+    @Arg('title') title: string,
+    @Arg('description', { nullable: true }) description: string,
     @Arg('eventUrl', { nullable: true }) eventUrl: string,
     @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
   ): Promise<Activity> {
     var activity = Activity.create({
       title,
       description,
-      mediumType,
-      physicalAddress,
+      mediumType: 'online',
       eventUrl,
       eventDateTime
     });
-    if (organizerCoordinates) {
-      const organizerPoint = `(${organizerCoordinates.xLocation}, ${organizerCoordinates.yLocation})`;
-      activity.organizerCoordinatesDb = (organizerPoint as unknown) as Point;
-    }
-    if (eventCoordinates) {
-      const eventPoint = `(${eventCoordinates.xLocation}, ${eventCoordinates.yLocation})`;
-      activity.eventCoordinatesDb = (eventPoint as unknown) as Point;
-    }
     activity = await activity.save();
     const userActivity = UserActivity.create({
       isOrganizing: true,
