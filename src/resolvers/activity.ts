@@ -1,5 +1,6 @@
+import { LocationInput } from './../input-types/LocationInput';
 import { Point } from 'geojson';
-import { Arg, Mutation, Query, Resolver, Ctx, Float } from 'type-graphql';
+import { Arg, Mutation, Query, Resolver, Ctx } from 'type-graphql';
 import { Activity } from '../entity/Activity';
 import { UserActivity } from '../entity/UserActivity';
 import { MyContext } from '../types';
@@ -24,20 +25,30 @@ export class ActivityResolver {
     @Arg('title') title: string,
     @Arg('description') description: string,
     @Arg('mediumType') mediumType: string,
-    @Arg('xLocation', () => Float) x: number,
-    @Arg('yLocation', () => Float) y: number,
-    @Arg('address') address: string,
+    @Arg('organizerCoordinates', () => LocationInput, { nullable: true })
+    organizerCoordinates: LocationInput,
+    @Arg('eventCoordinates', () => LocationInput, { nullable: true })
+    eventCoordinates: LocationInput,
+    @Arg('physicalAddress', { nullable: true }) physicalAddress: string,
+    @Arg('eventUrl', { nullable: true }) eventUrl: string,
     @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
   ): Promise<Activity> {
-    const point = `(${x}, ${y})`;
     var activity = Activity.create({
       title,
       description,
       mediumType,
-      address,
+      physicalAddress,
+      eventUrl,
       eventDateTime
     });
-    activity.locationDb = (point as unknown) as Point;
+    if (organizerCoordinates) {
+      const organizerPoint = `(${organizerCoordinates.xLocation}, ${organizerCoordinates.yLocation})`;
+      activity.organizerCoordinatesDb = (organizerPoint as unknown) as Point;
+    }
+    if (eventCoordinates) {
+      const eventPoint = `(${eventCoordinates.xLocation}, ${eventCoordinates.yLocation})`;
+      activity.eventCoordinatesDb = (eventPoint as unknown) as Point;
+    }
     activity = await activity.save();
     const userActivity = UserActivity.create({
       isOrganizing: true,
@@ -48,6 +59,25 @@ export class ActivityResolver {
     await userActivity.save();
     return activity;
   }
+
+  // @Mutation(() => Activity)
+  // async setEventCoordinates(
+  //   @Ctx() { user }: MyContext,
+  //   @Arg('id') id: string,
+  //   @Arg('location', () => LocationInput) location: LocationInput
+  // ): Promise<Activity> {
+  //   const activity = await Activity.findOneOrFail({ id });
+  //   const organizerId = (await activity.organizer()).id;
+  //   if (organizerId !== user.id) {
+  //     throw new ApolloError(
+  //       'Cannot set location of event because the user is not the organizer'
+  //     );
+  //   }
+  //   const point = `(${location.xLocation}, ${location.yLocation})`;
+  //   activity.eventCoordinatesDb = (point as unknown) as Point;
+  //   await activity.save();
+  //   return activity;
+  // }
 
   @Mutation(() => Activity)
   async updateActivity(
