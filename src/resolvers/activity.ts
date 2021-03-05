@@ -110,6 +110,9 @@ export class ActivityResolver {
     @Arg('eventUrl', { nullable: true }) eventUrl: string,
     @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
   ): Promise<OnlineActivity> {
+    if (!user) {
+      throw new AuthenticationError('User has not been created.');
+    }
     var activity = OnlineActivity.create({
       title,
       description,
