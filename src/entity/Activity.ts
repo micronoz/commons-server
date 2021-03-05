@@ -12,7 +12,7 @@ import {
 import { Field, ObjectType, ID, Ctx, InterfaceType } from 'type-graphql';
 import { UserActivity } from './UserActivity';
 import { Message } from './Message';
-import { MyContext } from 'src/types';
+import { MyContext } from '../types';
 import { ApolloError } from 'apollo-server-express';
 import { Point } from 'geojson';
 import { User } from './User';
@@ -22,7 +22,7 @@ import { User } from './User';
 })
 @Entity()
 @TableInheritance({ column: { type: 'varchar', name: 'type' } })
-export abstract class IActivity extends BaseEntity {
+export abstract class Activity extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
   id: string;

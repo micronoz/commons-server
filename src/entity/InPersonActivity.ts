@@ -2,11 +2,11 @@ import { Location } from './../model/Location';
 import { Point } from 'geojson';
 import { Field, ObjectType } from 'type-graphql';
 import { ChildEntity, Column } from 'typeorm';
-import { IActivity } from './IActivity';
+import { Activity } from './Activity';
 
-@ObjectType({ implements: IActivity })
+@ObjectType({ implements: Activity })
 @ChildEntity()
-export class InPersonActivity extends IActivity {
+export class InPersonActivity extends Activity {
   @Column({
     type: 'point',
     transformer: {

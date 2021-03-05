@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { UserActivity } from './UserActivity';
 import { UserPrivateInfo } from '../model/UserPrivateInfo';
-import { MyContext } from 'src/types';
+import { MyContext } from '../types';
 
 @ObjectType()
 @Entity()

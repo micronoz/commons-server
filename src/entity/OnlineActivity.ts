@@ -1,10 +1,10 @@
 import { Field, ObjectType } from 'type-graphql';
 import { ChildEntity, Column } from 'typeorm';
-import { IActivity } from './IActivity';
+import { Activity } from './Activity';
 
-@ObjectType({ implements: IActivity })
+@ObjectType({ implements: Activity })
 @ChildEntity()
-export class OnlineActivity extends IActivity {
+export class OnlineActivity extends Activity {
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   eventUrl: string;

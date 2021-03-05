@@ -8,7 +8,7 @@ import {
 import { LocationInput } from './../input-types/LocationInput';
 import { Point } from 'geojson';
 import { Arg, Mutation, Query, Resolver, Ctx } from 'type-graphql';
-import { IActivity } from '../entity/IActivity';
+import { Activity } from '../entity/Activity';
 import { UserActivity } from '../entity/UserActivity';
 import { MyContext } from '../types';
 import { Client, LatLngLiteral } from '@googlemaps/google-maps-services-js';
@@ -16,16 +16,16 @@ const client = new Client({});
 
 @Resolver()
 export class ActivityResolver {
-  @Query(() => IActivity, { nullable: true })
-  activity(@Arg('id') id: string): Promise<IActivity> {
-    return IActivity.findOneOrFail({ id });
+  @Query(() => Activity, { nullable: true })
+  activity(@Arg('id') id: string): Promise<Activity> {
+    return Activity.findOneOrFail({ id });
   }
 
   //TODO: Add location and category filter
   //TODO: Do not give all these at once
-  @Query(() => [IActivity])
-  async discoverActivities(): Promise<IActivity[]> {
-    return IActivity.find();
+  @Query(() => [Activity])
+  async discoverActivities(): Promise<Activity[]> {
+    return Activity.find();
   }
 
   async getCoordinatesFromPhysicalAddress(
@@ -147,12 +147,12 @@ export class ActivityResolver {
   //   return activity;
   // }
 
-  @Mutation(() => IActivity)
+  @Mutation(() => Activity)
   async updateActivity(
     @Arg('id') id: string,
     @Arg('title', { nullable: true }) title: string
-  ): Promise<IActivity> {
-    const activity = await IActivity.findOneOrFail({ id });
+  ): Promise<Activity> {
+    const activity = await Activity.findOneOrFail({ id });
     activity.title = title;
     await activity.save();
     return activity;
@@ -161,7 +161,7 @@ export class ActivityResolver {
   @Mutation(() => Boolean)
   async deleteActivity(@Arg('id') id: string): Promise<boolean> {
     try {
-      IActivity.delete({ id });
+      Activity.delete({ id });
     } catch (err) {
       console.error(err);
       return false;
@@ -173,8 +173,8 @@ export class ActivityResolver {
   @Mutation(() => Boolean)
   async deleteAllActivities(): Promise<boolean> {
     try {
-      const activities = await IActivity.find();
-      IActivity.remove(activities);
+      const activities = await Activity.find();
+      Activity.remove(activities);
       return true;
     } catch {
       return false;
