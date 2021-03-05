@@ -1,4 +1,4 @@
-import { Location } from './../model/Location';
+import { Location } from '../model/Location';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -6,19 +6,23 @@ import {
   UpdateDateColumn,
   BaseEntity,
   CreateDateColumn,
-  OneToMany
+  OneToMany,
+  TableInheritance
 } from 'typeorm';
-import { Field, ObjectType, ID, Ctx } from 'type-graphql';
+import { Field, ObjectType, ID, Ctx, InterfaceType } from 'type-graphql';
 import { UserActivity } from './UserActivity';
 import { Message } from './Message';
-import { MyContext } from 'src/types';
+import { MyContext } from '../types';
 import { ApolloError } from 'apollo-server-express';
 import { Point } from 'geojson';
 import { User } from './User';
 
-@ObjectType()
+@InterfaceType({
+  resolveType: (value) => value.constructor.name
+})
 @Entity()
-export class Activity extends BaseEntity {
+@TableInheritance({ column: { type: 'varchar', name: 'type' } })
+export abstract class Activity extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
   id: string;
@@ -49,71 +53,9 @@ export class Activity extends BaseEntity {
   @Column()
   mediumType: string;
 
-  @Column({
-    type: 'point',
-    transformer: {
-      to: (val) => val,
-      from(val): String | null {
-        if (val) {
-          return `(${val.x}, ${val.y})`;
-        } else return null;
-      }
-    },
-    nullable: true
-  })
-  organizerCoordinatesDb: Point;
-
-  @Column({
-    type: 'point',
-    transformer: {
-      to: (val) => val,
-      from(val): String | null {
-        if (val) {
-          return `(${val.x}, ${val.y})`;
-        } else return null;
-      }
-    },
-    nullable: true
-  })
-  eventCoordinatesDb: Point;
-
-  @Field(() => Location, { nullable: true })
-  discoveryCoordinates(): Location | null {
-    if (this.mediumType === 'online') return null;
-    const loc = this.eventCoordinatesDb
-      ? this.eventCoordinatesDb
-      : this.organizerCoordinatesDb;
-    const parsed = loc.toString().slice(1, loc.toString().length - 1);
-    const coordinates = parsed.split(',');
-    const x = +coordinates[0];
-    const y = +coordinates[1];
-    return new Location(x, y);
-  }
-
-  @Field(() => Location, { nullable: true })
-  eventCoordinates(): Location | null {
-    if (this.eventCoordinatesDb == null) {
-      return null;
-    }
-    const loc = this.eventCoordinatesDb;
-    const parsed = loc.toString().slice(1, loc.toString().length - 1);
-    const coordinates = parsed.split(',');
-    const x = +coordinates[0];
-    const y = +coordinates[1];
-    return new Location(x, y);
-  }
-
   @Field(() => String, { nullable: true })
   @Column({ type: 'timestamp with time zone', nullable: true })
   eventDateTime: Date;
-
-  @Field(() => String, { nullable: true })
-  @Column({ nullable: true })
-  physicalAddress: string;
-
-  @Field(() => String, { nullable: true })
-  @Column({ nullable: true })
-  eventUrl: string;
 
   @Field(() => [UserActivity])
   @OneToMany(() => UserActivity, (userActivity) => userActivity.activity, {
