@@ -1,8 +1,14 @@
-import { ApolloError, UserInputError } from 'apollo-server-express';
+import { OnlineActivity } from './../entity/OnlineActivity';
+import { InPersonActivity } from './../entity/InPersonActivity';
+import {
+  ApolloError,
+  UserInputError,
+  AuthenticationError
+} from 'apollo-server-express';
 import { LocationInput } from './../input-types/LocationInput';
 import { Point } from 'geojson';
 import { Arg, Mutation, Query, Resolver, Ctx } from 'type-graphql';
-import { Activity } from '../entity/Activity';
+import { IActivity } from '../entity/IActivity';
 import { UserActivity } from '../entity/UserActivity';
 import { MyContext } from '../types';
 import { Client, LatLngLiteral } from '@googlemaps/google-maps-services-js';
@@ -10,16 +16,16 @@ const client = new Client({});
 
 @Resolver()
 export class ActivityResolver {
-  @Query(() => Activity, { nullable: true })
-  activity(@Arg('id') id: string): Promise<Activity> {
-    return Activity.findOneOrFail({ id });
+  @Query(() => IActivity, { nullable: true })
+  activity(@Arg('id') id: string): Promise<IActivity> {
+    return IActivity.findOneOrFail({ id });
   }
 
   //TODO: Add location and category filter
   //TODO: Do not give all these at once
-  @Query(() => [Activity])
-  async discoverActivities(): Promise<Activity[]> {
-    return Activity.find();
+  @Query(() => [IActivity])
+  async discoverActivities(): Promise<IActivity[]> {
+    return IActivity.find();
   }
 
   async getCoordinatesFromPhysicalAddress(
@@ -52,17 +58,21 @@ export class ActivityResolver {
       throw new ApolloError('Geolocator error.');
     }
   }
-  @Mutation(() => Activity)
-  async createPhysicalActivity(
+  @Mutation(() => InPersonActivity)
+  async createInPersonActivity(
     @Ctx() { user }: MyContext,
     @Arg('title') title: string,
     @Arg('description', { nullable: true }) description: string,
+    //TODO: Make non nullable (organizerCoordinates)
     @Arg('organizerCoordinates', () => LocationInput, { nullable: true })
     organizerCoordinates: LocationInput,
     @Arg('physicalAddress', { nullable: true }) physicalAddress: string,
     @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
-  ): Promise<Activity> {
-    var activity = Activity.create({
+  ): Promise<InPersonActivity> {
+    if (!user) {
+      throw new AuthenticationError('User has not been created.');
+    }
+    var activity = InPersonActivity.create({
       title,
       description,
       mediumType: 'in_person',
@@ -92,15 +102,15 @@ export class ActivityResolver {
     await userActivity.save();
     return activity;
   }
-  @Mutation(() => Activity)
+  @Mutation(() => OnlineActivity)
   async createOnlineActivity(
     @Ctx() { user }: MyContext,
     @Arg('title') title: string,
     @Arg('description', { nullable: true }) description: string,
     @Arg('eventUrl', { nullable: true }) eventUrl: string,
     @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
-  ): Promise<Activity> {
-    var activity = Activity.create({
+  ): Promise<OnlineActivity> {
+    var activity = OnlineActivity.create({
       title,
       description,
       mediumType: 'online',
@@ -137,12 +147,12 @@ export class ActivityResolver {
   //   return activity;
   // }
 
-  @Mutation(() => Activity)
+  @Mutation(() => IActivity)
   async updateActivity(
     @Arg('id') id: string,
     @Arg('title', { nullable: true }) title: string
-  ): Promise<Activity> {
-    const activity = await Activity.findOneOrFail({ id });
+  ): Promise<IActivity> {
+    const activity = await IActivity.findOneOrFail({ id });
     activity.title = title;
     await activity.save();
     return activity;
@@ -151,7 +161,7 @@ export class ActivityResolver {
   @Mutation(() => Boolean)
   async deleteActivity(@Arg('id') id: string): Promise<boolean> {
     try {
-      Activity.delete({ id });
+      IActivity.delete({ id });
     } catch (err) {
       console.error(err);
       return false;
@@ -163,8 +173,8 @@ export class ActivityResolver {
   @Mutation(() => Boolean)
   async deleteAllActivities(): Promise<boolean> {
     try {
-      const activities = await Activity.find();
-      Activity.remove(activities);
+      const activities = await IActivity.find();
+      IActivity.remove(activities);
       return true;
     } catch {
       return false;
