@@ -1,4 +1,3 @@
-import { Location } from '../model/Location';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -9,17 +8,14 @@ import {
   OneToMany,
   TableInheritance
 } from 'typeorm';
-import { Field, ObjectType, ID, Ctx, InterfaceType } from 'type-graphql';
+import { Field, ID, Ctx, InterfaceType } from 'type-graphql';
 import { UserActivity } from './UserActivity';
 import { Message } from './Message';
 import { MyContext } from '../types';
 import { ApolloError } from 'apollo-server-express';
-import { Point } from 'geojson';
 import { User } from './User';
 
-@InterfaceType({
-  resolveType: (value) => value.constructor.name
-})
+@InterfaceType()
 @Entity()
 @TableInheritance({ column: { type: 'varchar', name: 'type' } })
 export abstract class Activity extends BaseEntity {
