@@ -8,5 +8,5 @@ export class LocationInput {
   xLocation: number;
 
   @Field(() => Float)
-  yLocation?: number;
+  yLocation: number;
 }

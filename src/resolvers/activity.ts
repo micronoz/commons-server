@@ -1,3 +1,5 @@
+import { OnlineActivity } from './../entity/OnlineActivity';
+import { InPersonActivity } from './../entity/InPersonActivity';
 import {
   ApolloError,
   UserInputError,
@@ -56,17 +58,21 @@ export class ActivityResolver {
       throw new ApolloError('Geolocator error.');
     }
   }
-  @Mutation(() => Activity)
-  async createPhysicalActivity(
+  @Mutation(() => InPersonActivity)
+  async createInPersonActivity(
     @Ctx() { user }: MyContext,
     @Arg('title') title: string,
     @Arg('description', { nullable: true }) description: string,
+    //TODO: Make non nullable (organizerCoordinates)
     @Arg('organizerCoordinates', () => LocationInput, { nullable: true })
     organizerCoordinates: LocationInput,
     @Arg('physicalAddress', { nullable: true }) physicalAddress: string,
     @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
-  ): Promise<Activity> {
-    var activity = Activity.create({
+  ): Promise<InPersonActivity> {
+    if (!user) {
+      throw new AuthenticationError('User has not been created.');
+    }
+    var activity = InPersonActivity.create({
       title,
       description,
       mediumType: 'in_person',
@@ -96,15 +102,18 @@ export class ActivityResolver {
     await userActivity.save();
     return activity;
   }
-  @Mutation(() => Activity)
+  @Mutation(() => OnlineActivity)
   async createOnlineActivity(
     @Ctx() { user }: MyContext,
     @Arg('title') title: string,
     @Arg('description', { nullable: true }) description: string,
     @Arg('eventUrl', { nullable: true }) eventUrl: string,
     @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
-  ): Promise<Activity> {
-    var activity = Activity.create({
+  ): Promise<OnlineActivity> {
+    if (!user) {
+      throw new AuthenticationError('User has not been created.');
+    }
+    var activity = OnlineActivity.create({
       title,
       description,
       mediumType: 'online',
