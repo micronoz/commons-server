@@ -170,4 +170,20 @@ export class ActivityResolver {
       return false;
     }
   }
+
+  @Mutation(() => UserActivity)
+  async requestToJoinActivity(
+    @Arg('id') id: string,
+    @Ctx() { user }: MyContext
+  ): Promise<UserActivity> {
+    const activity = await Activity.findOneOrFail({ id });
+    const userActivity = UserActivity.create();
+    userActivity.isOrganizing = false;
+    userActivity.attendanceStatus = 0;
+    userActivity.activity = Promise.resolve(activity);
+    userActivity.user = Promise.resolve(user);
+    (await activity.userConnections).push(userActivity);
+    await activity.save();
+    return userActivity;
+  }
 }
