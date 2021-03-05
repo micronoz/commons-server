@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { ObjectType, Field, ID } from 'type-graphql';
 import { User } from './User';
-import { IActivity } from './IActivity';
+import { Activity } from './Activity';
 // import { Activity } from './Activity';
 
 @ObjectType()
@@ -28,11 +28,11 @@ export class Message extends BaseEntity {
   })
   sender: Promise<User>;
 
-  @Field(() => IActivity)
-  @ManyToOne(() => IActivity, (activity) => activity.messageConnectionsDb, {
+  @Field(() => Activity)
+  @ManyToOne(() => Activity, (activity) => activity.messageConnectionsDb, {
     onDelete: 'CASCADE'
   })
-  activity: Promise<IActivity>;
+  activity: Promise<Activity>;
 
   @Field(() => String)
   @CreateDateColumn({

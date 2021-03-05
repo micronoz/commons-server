@@ -2,7 +2,7 @@ import { Resolver, Ctx, Mutation, Arg } from 'type-graphql';
 import { Message } from '../entity/Message';
 import { MyContext } from '../types';
 import { UserActivity } from '../entity/UserActivity';
-import { IActivity } from '../entity/IActivity';
+import { Activity } from '../entity/Activity';
 import { ApolloError } from 'apollo-server-express';
 
 @Resolver()
@@ -13,9 +13,9 @@ export class MessageResolver {
     @Arg('activityId') activityId: string,
     @Arg('message') message: string
   ): Promise<Message> {
-    var activity: Promise<IActivity>;
+    var activity: Promise<Activity>;
     try {
-      activity = IActivity.findOneOrFail({
+      activity = Activity.findOneOrFail({
         id: activityId
       });
       await UserActivity.findOneOrFail({
