@@ -1,4 +1,8 @@
-import { ApolloError, UserInputError } from 'apollo-server-express';
+import {
+  ApolloError,
+  UserInputError,
+  AuthenticationError
+} from 'apollo-server-express';
 import { LocationInput } from './../input-types/LocationInput';
 import { Point } from 'geojson';
 import { Arg, Mutation, Query, Resolver, Ctx } from 'type-graphql';
@@ -176,6 +180,9 @@ export class ActivityResolver {
     @Arg('id') id: string,
     @Ctx() { user }: MyContext
   ): Promise<UserActivity> {
+    if (!user) {
+      throw new AuthenticationError('User has not been created.');
+    }
     const activity = await Activity.findOneOrFail({ id });
     const userActivity = UserActivity.create();
     userActivity.isOrganizing = false;
