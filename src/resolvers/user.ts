@@ -5,7 +5,7 @@ import { MyContext } from '../types';
 
 @Resolver()
 export class UserResolver {
-  @Query(() => User)
+  @Query(() => User, { nullable: true })
   user(@Ctx() { user }: MyContext): User {
     return user;
   }
