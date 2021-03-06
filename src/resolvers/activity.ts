@@ -21,11 +21,16 @@ export class ActivityResolver {
     return Activity.findOneOrFail({ id });
   }
 
-  //TODO: Add location and category filter
-  //TODO: Do not give all these at once
-  @Query(() => [Activity])
-  async discoverActivities(): Promise<Activity[]> {
-    return Activity.find();
+  @Query(() => [InPersonActivity])
+  async discoverInPersonActivities(
+    @Arg('discoveryCoordinates') discoveryCoordinates: LocationInput,
+    @Arg('radiusInKilometers') radiusInKilometers: number
+  ): Promise<InPersonActivity[]> {
+    return InPersonActivity.find();
+  }
+  @Query(() => [OnlineActivity])
+  async discoverOnlineActivities(): Promise<OnlineActivity[]> {
+    return OnlineActivity.find();
   }
 
   async getCoordinatesFromPhysicalAddress(
