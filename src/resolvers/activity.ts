@@ -26,6 +26,7 @@ export class ActivityResolver {
     @Arg('discoveryCoordinates') discoveryCoordinates: LocationInput,
     @Arg('radiusInKilometers') radiusInKilometers: number
   ): Promise<InPersonActivity[]> {
+    //TODO: Filter by coordinates and radius.
     return InPersonActivity.find();
   }
   @Query(() => [OnlineActivity])
