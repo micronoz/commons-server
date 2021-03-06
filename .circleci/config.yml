@@ -3,26 +3,25 @@ version: 2.1
 orbs:
   aws-ecr: circleci/aws-ecr@6.15.3
   aws-ecs: circleci/aws-ecs@2.0.0
-
-workflows:
-  build-and-deploy:
-    jobs:
-      - aws-ecr/build-and-push-image:
-          repo: '${AWS_RESOURCE_NAME_PREFIX}'
-          tag: '${CIRCLE_SHA1}'
-          filters:
-            branches:
-              only:
-                - main
-      - aws-ecs/deploy-service-update:
-          requires:
-            - aws-ecr/build-and-push-image
-          family: '${AWS_RESOURCE_NAME_PREFIX}-service'
-          cluster-name: '${AWS_RESOURCE_NAME_PREFIX}-cluster'
-          container-image-name-updates: 'container=app,image-and-tag=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${AWS_RESOURCE_NAME_PREFIX}:${CIRCLE_SHA1}'
-          verify-revision-is-deployed: true
-          container-env-var-updates: 'container=app,name=FIREBASE_KEY,value=${FIREBASE_KEY},container=app,name=DATABASE_HOST,value=${DATABASE_HOST},container=app,name=DATABASE_PASSWORD,value=${DATABASE_PASSWORD},container=app,name=NODE_ENV,value=production,container=app,name=PORT,value=80,container=app,name=DATABASE_PORT,value=5432,container=app,name=DATABASE_USER,value=commons,container=app,name=DATABASE_NAME,value=commons,container=app,name=GOOGLE_MAPS_API_KEY,value=${GOOGLE_MAPS_API_KEY}'
-          filters:
-            branches:
-              only:
-                - main
+# workflows:
+#   build-and-deploy:
+#     jobs:
+#       - aws-ecr/build-and-push-image:
+#           repo: '${AWS_RESOURCE_NAME_PREFIX}'
+#           tag: '${CIRCLE_SHA1}'
+#           filters:
+#             branches:
+#               only:
+#                 - main
+#       - aws-ecs/deploy-service-update:
+#           requires:
+#             - aws-ecr/build-and-push-image
+#           family: '${AWS_RESOURCE_NAME_PREFIX}-service'
+#           cluster-name: '${AWS_RESOURCE_NAME_PREFIX}-cluster'
+#           container-image-name-updates: 'container=app,image-and-tag=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${AWS_RESOURCE_NAME_PREFIX}:${CIRCLE_SHA1}'
+#           verify-revision-is-deployed: true
+#           container-env-var-updates: 'container=app,name=FIREBASE_KEY,value=${FIREBASE_KEY},container=app,name=DATABASE_HOST,value=${DATABASE_HOST},container=app,name=DATABASE_PASSWORD,value=${DATABASE_PASSWORD},container=app,name=NODE_ENV,value=production,container=app,name=PORT,value=80,container=app,name=DATABASE_PORT,value=5432,container=app,name=DATABASE_USER,value=commons,container=app,name=DATABASE_NAME,value=commons,container=app,name=GOOGLE_MAPS_API_KEY,value=${GOOGLE_MAPS_API_KEY}'
+#           filters:
+#             branches:
+#               only:
+#                 - main
