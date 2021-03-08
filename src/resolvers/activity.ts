@@ -1,3 +1,4 @@
+import { InPersonActivityRecommendation } from './../entity/InPersonActivityRecommendation';
 import { OnlineActivity } from './../entity/OnlineActivity';
 import { InPersonActivity } from './../entity/InPersonActivity';
 import {
@@ -22,11 +23,11 @@ export class ActivityResolver {
     return Activity.findOneOrFail({ id });
   }
 
-  @Query(() => [InPersonActivity])
+  @Query(() => [InPersonActivityRecommendation])
   async discoverInPersonActivities(
     @Arg('discoveryCoordinates') discoveryCoordinates: LocationInput,
     @Arg('radiusInKilometers') radiusInKilometers: number
-  ): Promise<InPersonActivity[]> {
+  ): Promise<InPersonActivityRecommendation[]> {
     try {
       const discoveryPoint = {
         type: 'Point',
@@ -36,37 +37,48 @@ export class ActivityResolver {
           discoveryCoordinates.yLocation
         ]
       };
-      // const connection = getConnection();
-      // const query: SelectQueryBuilder<InPersonActivity> = connection.createQueryBuilder();
 
       const query = getConnection()
         .getRepository(InPersonActivity)
         .createQueryBuilder('activity');
       //TODO: Check if the distance is actually accurate in kilometers.
-      const result = await query
-        // .select(
-        // 'ST_Distance(activity.organizerCoordinatesDb, ST_GeomFromGeoJSON(:discoveryPoint)::geography) AS distance'
-        // )
-        // .addSelect('*')
-        .select()
+      const selectedActivities = await query
         .where(
-          // 'ST_Distance(activity.organizerCoordinatesDb, ST_GeomFromGeoJSON(:discoveryPoint)::geography) < :radiusInSRID'
           'ST_Distance(activity.organizerCoordinatesDb, ST_GeomFromGeoJSON(:discoveryPoint)::geography) < :radiusInSRID'
         )
-        // .leftJoinAndSelect(
-        //   'ST_Distance(activity.organizerCoordinatesDb, ST_GeomFromGeoJSON(:discoveryPoint)::geography)',
-        //   'distance'
-        // )
         .setParameters({
           discoveryPoint: JSON.stringify(discoveryPoint),
           radiusInSRID: radiusInKilometers * 1000
         })
-        // .from(InPersonActivity, 'activity')
-
         .getMany();
-      // const result = InPersonActivity.find({'ST_Distance(ST_GeomFromGeoJSON(activity.eventCoordinatesDb), ST_GeomFromGeoJSON( $${"type": "Point", "coordinates": :coordinates}$$)) < 1000': LessThan(1000)})
-      console.log(result);
-      return InPersonActivity.find();
+
+      const distances = await query
+        .select(
+          'ST_Distance(activity.organizerCoordinatesDb, ST_GeomFromGeoJSON(:discoveryPoint)::geography)/1000 AS distance'
+        )
+        .addSelect('id AS id')
+        .setParameters({
+          discoveryPoint: JSON.stringify(discoveryPoint),
+          radiusInSRID: radiusInKilometers * 1000
+        })
+        .andWhereInIds(selectedActivities)
+        .execute();
+
+      return selectedActivities.map((currentValue, index) => {
+        //TODO: See if this case is possible. If it is, handle it.
+        if (currentValue.id != distances[index].id) {
+          console.error(
+            'ERROR: Distances did not return in the same order as selected activities'
+          );
+          throw Error(
+            'Distances did not return in the same order as selected activities'
+          );
+        }
+        const recommendation = new InPersonActivityRecommendation();
+        recommendation.activity = currentValue;
+        recommendation.distance = distances[index].distance;
+        return recommendation;
+      });
     } catch (e) {
       console.error('Discover in person activity ERROR:');
       console.error(e);
@@ -129,7 +141,9 @@ export class ActivityResolver {
       physicalAddress,
       eventDateTime
     });
-
+    // console.log(
+    //   `Creating in person activity. Organizer coordinates: ${organizerCoordinates.xLocation}, ${organizerCoordinates.yLocation}`
+    // );
     // const organizerPoint = `(${organizerCoordinates.xLocation}, ${organizerCoordinates.yLocation})`;
     const organizerPoint = {
       type: 'Point',

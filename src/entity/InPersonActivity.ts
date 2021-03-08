@@ -49,9 +49,9 @@ export class InPersonActivity extends Activity {
     const loc = this.eventCoordinatesDb
       ? this.eventCoordinatesDb
       : this.organizerCoordinatesDb;
-    console.log('LOC');
-    console.log(loc);
-    console.log(this.id);
+    // console.log('LOC');
+    // console.log(loc);
+    // console.log(this.id);
     const x = +(loc as Point).coordinates[0];
     const y = +(loc as Point).coordinates[1];
     return new Location(x, y);
