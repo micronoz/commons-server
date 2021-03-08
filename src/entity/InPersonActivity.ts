@@ -1,5 +1,5 @@
 import { Location } from './../model/Location';
-import { Point } from 'geojson';
+import { Geometry, Point } from 'geojson';
 import { Field, ObjectType } from 'type-graphql';
 import { ChildEntity, Column } from 'typeorm';
 import { Activity } from './Activity';
@@ -8,43 +8,52 @@ import { Activity } from './Activity';
 @ChildEntity()
 export class InPersonActivity extends Activity {
   @Column({
-    type: 'point',
-    transformer: {
-      to: (val) => val,
-      from(val): String | null {
-        if (val) {
-          return `(${val.x}, ${val.y})`;
-        } else return null;
-      }
-    },
-    nullable: true
+    type: 'geography',
+    srid: 4326
+    // transformer: {
+    //   to: (val) => val,
+    //   from(val): String | null {
+    //     if (val) {
+    //       return `(${val.x}, ${val.y})`;
+    //     } else return null;
+    //   }
+    // },
   })
-  organizerCoordinatesDb: Point;
+  organizerCoordinatesDb: Geometry;
 
   @Column({
-    type: 'point',
-    transformer: {
-      to: (val) => val,
-      from(val): String | null {
-        if (val) {
-          return `(${val.x}, ${val.y})`;
-        } else return null;
-      }
-    },
-    nullable: true
+    type: 'geography',
+    srid: 4326
+    // transformer: {
+    //   to: (val) => val,
+    //   from(val): String | null {
+    //     if (val) {
+    //       return `(${val.x}, ${val.y})`;
+    //     } else return null;
+    //   }
+    // },
+    // nullable: true
   })
-  eventCoordinatesDb: Point;
+  eventCoordinatesDb: Geometry;
 
-  @Field(() => Location, { nullable: true })
-  discoveryCoordinates(): Location | null {
-    if (this.mediumType === 'online') return null;
+  @Field(() => Location)
+  discoveryCoordinates(): Location {
+    // const loc = this.eventCoordinatesDb
+    //   ? this.eventCoordinatesDb
+    //   : this.organizerCoordinatesDb;
+    // const parsed = loc.toString().slice(1, loc.toString().length - 1);
+    // const coordinates = parsed.split(',');
+    // const x = +coordinates[0];
+    // const y = +coordinates[1];
+    // return new Location(x, y);
     const loc = this.eventCoordinatesDb
       ? this.eventCoordinatesDb
       : this.organizerCoordinatesDb;
-    const parsed = loc.toString().slice(1, loc.toString().length - 1);
-    const coordinates = parsed.split(',');
-    const x = +coordinates[0];
-    const y = +coordinates[1];
+    console.log('LOC');
+    console.log(loc);
+    console.log(this.id);
+    const x = +(loc as Point).coordinates[0];
+    const y = +(loc as Point).coordinates[1];
     return new Location(x, y);
   }
 

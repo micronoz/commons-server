@@ -6,12 +6,13 @@ import {
   AuthenticationError
 } from 'apollo-server-express';
 import { LocationInput } from './../input-types/LocationInput';
-import { Point } from 'geojson';
+import { Geometry } from 'geojson';
 import { Arg, Mutation, Query, Resolver, Ctx } from 'type-graphql';
 import { Activity } from '../entity/Activity';
 import { UserActivity } from '../entity/UserActivity';
 import { MyContext } from '../types';
 import { Client, LatLngLiteral } from '@googlemaps/google-maps-services-js';
+import { getConnection, LessThan, SelectQueryBuilder } from 'typeorm';
 const client = new Client({});
 
 @Resolver()
@@ -26,8 +27,51 @@ export class ActivityResolver {
     @Arg('discoveryCoordinates') discoveryCoordinates: LocationInput,
     @Arg('radiusInKilometers') radiusInKilometers: number
   ): Promise<InPersonActivity[]> {
-    //TODO: Filter by coordinates and radius.
-    return InPersonActivity.find();
+    try {
+      const discoveryPoint = {
+        type: 'Point',
+        srid: 4326,
+        coordinates: [
+          discoveryCoordinates.xLocation,
+          discoveryCoordinates.yLocation
+        ]
+      };
+      // const connection = getConnection();
+      // const query: SelectQueryBuilder<InPersonActivity> = connection.createQueryBuilder();
+
+      const query = getConnection()
+        .getRepository(InPersonActivity)
+        .createQueryBuilder('activity');
+      //TODO: Check if the distance is actually accurate in kilometers.
+      const result = await query
+        // .select(
+        // 'ST_Distance(activity.organizerCoordinatesDb, ST_GeomFromGeoJSON(:discoveryPoint)::geography) AS distance'
+        // )
+        // .addSelect('*')
+        .select()
+        .where(
+          // 'ST_Distance(activity.organizerCoordinatesDb, ST_GeomFromGeoJSON(:discoveryPoint)::geography) < :radiusInSRID'
+          'ST_Distance(activity.organizerCoordinatesDb, ST_GeomFromGeoJSON(:discoveryPoint)::geography) < :radiusInSRID'
+        )
+        // .leftJoinAndSelect(
+        //   'ST_Distance(activity.organizerCoordinatesDb, ST_GeomFromGeoJSON(:discoveryPoint)::geography)',
+        //   'distance'
+        // )
+        .setParameters({
+          discoveryPoint: JSON.stringify(discoveryPoint),
+          radiusInSRID: radiusInKilometers * 1000
+        })
+        // .from(InPersonActivity, 'activity')
+
+        .getMany();
+      // const result = InPersonActivity.find({'ST_Distance(ST_GeomFromGeoJSON(activity.eventCoordinatesDb), ST_GeomFromGeoJSON( $${"type": "Point", "coordinates": :coordinates}$$)) < 1000': LessThan(1000)})
+      console.log(result);
+      return InPersonActivity.find();
+    } catch (e) {
+      console.error('Discover in person activity ERROR:');
+      console.error(e);
+      return Promise.reject('Error when discovering in person activity.');
+    }
   }
   @Query(() => [OnlineActivity])
   async discoverOnlineActivities(): Promise<OnlineActivity[]> {
@@ -68,10 +112,10 @@ export class ActivityResolver {
   async createInPersonActivity(
     @Ctx() { user }: MyContext,
     @Arg('title') title: string,
-    @Arg('description', { nullable: true }) description: string,
-    //TODO: Make non nullable (organizerCoordinates)
-    @Arg('organizerCoordinates', () => LocationInput, { nullable: true })
+    @Arg('organizerCoordinates', () => LocationInput)
     organizerCoordinates: LocationInput,
+    @Arg('description', { nullable: true })
+    description: string,
     @Arg('physicalAddress', { nullable: true }) physicalAddress: string,
     @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
   ): Promise<InPersonActivity> {
@@ -86,17 +130,22 @@ export class ActivityResolver {
       eventDateTime
     });
 
-    if (organizerCoordinates) {
-      const organizerPoint = `(${organizerCoordinates.xLocation}, ${organizerCoordinates.yLocation})`;
-      activity.organizerCoordinatesDb = (organizerPoint as unknown) as Point;
-    }
-    if (physicalAddress) {
-      const eventCoordinates = await this.getCoordinatesFromPhysicalAddress(
-        physicalAddress
-      );
-      const eventPoint = `(${eventCoordinates.lng}, ${eventCoordinates.lat})`;
-      activity.eventCoordinatesDb = (eventPoint as unknown) as Point;
-    }
+    // const organizerPoint = `(${organizerCoordinates.xLocation}, ${organizerCoordinates.yLocation})`;
+    const organizerPoint = {
+      type: 'Point',
+      coordinates: [
+        organizerCoordinates.xLocation,
+        organizerCoordinates.yLocation
+      ]
+    };
+    activity.organizerCoordinatesDb = organizerPoint as Geometry;
+    // if (physicalAddress) {
+    //   const eventCoordinates = await this.getCoordinatesFromPhysicalAddress(
+    //     physicalAddress
+    //   );
+    //   const eventPoint = `(${eventCoordinates.lng}, ${eventCoordinates.lat})`;
+    //   activity.eventCoordinatesDb = (eventPoint as unknown) as Point;
+    // }
 
     activity = await activity.save();
     const userActivity = UserActivity.create({
