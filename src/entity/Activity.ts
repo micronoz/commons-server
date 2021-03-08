@@ -8,12 +8,13 @@ import {
   OneToMany,
   TableInheritance
 } from 'typeorm';
-import { Field, ID, Ctx, InterfaceType } from 'type-graphql';
+import { Field, ID, Ctx, InterfaceType, Arg, Int } from 'type-graphql';
 import { UserActivity } from './UserActivity';
 import { Message } from './Message';
 import { MyContext } from '../types';
 import { ApolloError } from 'apollo-server-express';
 import { User } from './User';
+import { stat } from 'fs';
 
 @InterfaceType()
 @Entity()
@@ -53,11 +54,33 @@ export abstract class Activity extends BaseEntity {
   @Column({ type: 'timestamp with time zone', nullable: true })
   eventDateTime: Date;
 
-  @Field(() => [UserActivity])
   @OneToMany(() => UserActivity, (userActivity) => userActivity.activity, {
     cascade: true
   })
-  userConnections: Promise<UserActivity[]>;
+  userConnectionsDb: Promise<UserActivity[]>;
+
+  @Field(() => [UserActivity])
+  async userConnections(
+    @Ctx() { user }: MyContext,
+    @Arg('status', () => Int, { nullable: true }) status: number | null
+  ): Promise<UserActivity[]> {
+    if (user.id === (await this.organizer()).id) {
+      if (status == null) {
+        return this.userConnectionsDb;
+      } else {
+        return UserActivity.find({
+          where: { activity: this, attendanceStatus: status }
+        });
+      }
+    } else {
+      return UserActivity.find({
+        where: [
+          { activity: this, attendanceStatus: 1 },
+          { activity: this, user }
+        ]
+      });
+    }
+  }
 
   @OneToMany(() => Message, (message) => message.activity, { cascade: true })
   messageConnectionsDb: Promise<Message[]>;
