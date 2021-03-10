@@ -9,10 +9,11 @@ import { ApolloError } from 'apollo-server-express';
 export class MessageResolver {
   @Mutation(() => Message)
   async createMessage(
-    @Ctx() { user }: MyContext,
+    @Ctx() { getUser }: MyContext,
     @Arg('activityId') activityId: string,
     @Arg('message') message: string
   ): Promise<Message> {
+    const user = await getUser;
     var activity: Promise<Activity>;
     try {
       activity = Activity.findOneOrFail({

@@ -2,9 +2,12 @@ import { Response, Request } from 'express';
 import { User } from './entity/User';
 import { FirebaseUser } from './model/firebaseUser';
 
-export type MyContext = {
+export class MyContext {
   req: Request;
   res: Response;
-  user: User;
+  get getUser(): Promise<User> {
+    return this._getUser();
+  }
+  private _getUser: () => Promise<User>;
   firebaseUser: FirebaseUser;
-};
+}

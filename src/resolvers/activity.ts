@@ -12,6 +12,7 @@ import { Activity } from '../entity/Activity';
 import { UserActivity } from '../entity/UserActivity';
 import { MyContext } from '../types';
 import { Client, LatLngLiteral } from '@googlemaps/google-maps-services-js';
+import { User } from '../entity/User';
 const client = new Client({});
 
 @Resolver()
@@ -66,7 +67,7 @@ export class ActivityResolver {
   }
   @Mutation(() => InPersonActivity)
   async createInPersonActivity(
-    @Ctx() { user }: MyContext,
+    @Ctx() { getUser }: MyContext,
     @Arg('title') title: string,
     @Arg('description', { nullable: true }) description: string,
     //TODO: Make non nullable (organizerCoordinates)
@@ -75,9 +76,7 @@ export class ActivityResolver {
     @Arg('physicalAddress', { nullable: true }) physicalAddress: string,
     @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
   ): Promise<InPersonActivity> {
-    if (!user) {
-      throw new AuthenticationError('User has not been created.');
-    }
+    const user = await getUser;
     var activity = InPersonActivity.create({
       title,
       description,
@@ -110,15 +109,13 @@ export class ActivityResolver {
   }
   @Mutation(() => OnlineActivity)
   async createOnlineActivity(
-    @Ctx() { user }: MyContext,
+    @Ctx() { getUser }: MyContext,
     @Arg('title') title: string,
     @Arg('description', { nullable: true }) description: string,
     @Arg('eventUrl', { nullable: true }) eventUrl: string,
     @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
   ): Promise<OnlineActivity> {
-    if (!user) {
-      throw new AuthenticationError('User has not been created.');
-    }
+    const user = await getUser;
     var activity = OnlineActivity.create({
       title,
       description,
@@ -193,19 +190,76 @@ export class ActivityResolver {
   @Mutation(() => UserActivity)
   async requestToJoinActivity(
     @Arg('id') id: string,
-    @Ctx() { user }: MyContext
+    @Ctx() { getUser }: MyContext
   ): Promise<UserActivity> {
-    if (!user) {
-      throw new AuthenticationError('User has not been created.');
-    }
+    const user = await getUser;
     const activity = await Activity.findOneOrFail({ id });
     const userActivity = UserActivity.create();
     userActivity.isOrganizing = false;
     userActivity.attendanceStatus = 0;
     userActivity.activity = Promise.resolve(activity);
     userActivity.user = Promise.resolve(user);
-    (await activity.userConnections).push(userActivity);
+    (await activity.userConnectionsDb).push(userActivity);
     await activity.save();
     return userActivity;
+  }
+
+  @Mutation(() => UserActivity)
+  async acceptJoinRequest(
+    @Arg('userId') userId: string,
+    @Arg('activityId') activityId: string,
+    @Ctx() { getUser }: MyContext
+  ): Promise<UserActivity> {
+    const user = await getUser;
+    return this.setUserActivityAttendanceCheckAdmin(
+      activityId,
+      user,
+      userId,
+      1
+    );
+  }
+
+  @Mutation(() => UserActivity)
+  async rejectJoinRequest(
+    @Arg('userId') userId: string,
+    @Arg('activityId') activityId: string,
+    @Ctx() { getUser }: MyContext
+  ): Promise<UserActivity> {
+    const user = await getUser;
+    return this.setUserActivityAttendanceCheckAdmin(
+      activityId,
+      user,
+      userId,
+      2
+    );
+  }
+
+  async setUserActivityAttendanceCheckAdmin(
+    activityId: string,
+    user: User,
+    userId: string,
+    attendanceStatus: number
+  ): Promise<UserActivity> {
+    if (!user) {
+      throw new AuthenticationError('User has not been created.');
+    }
+    const activity = await Activity.findOneOrFail({ id: activityId });
+    const adminUserActivity = await UserActivity.findOne({
+      where: {
+        activity: activity,
+        user: user
+      }
+    });
+    if (adminUserActivity == null || !adminUserActivity.isOrganizing) {
+      throw new ApolloError(
+        `User is not authorized to make changes to this activity with id: ${activityId}`,
+        '400'
+      );
+    }
+    const otherUserActivity = await UserActivity.findOneOrFail({
+      where: { user: await User.findOneOrFail({ id: userId }), activity }
+    });
+    otherUserActivity.attendanceStatus = attendanceStatus;
+    return otherUserActivity.save();
   }
 }

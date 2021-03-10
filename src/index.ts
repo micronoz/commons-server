@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { __prod__, __dbhost__, __firebaseKey__, __port__ } from './constants';
 import { createConnection } from 'typeorm';
-import { ApolloServer } from 'apollo-server-express';
+import { ApolloServer, AuthenticationError } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
 import { ActivityResolver } from './resolvers/activity';
 import { UserResolver } from './resolvers/user';
@@ -41,8 +41,16 @@ const main = async () => {
     context: async ({ req }) => {
       {
         const firebaseUser = await decodeToken(req);
-        const user = await User.findOne({ email: firebaseUser.email });
-        return { user, firebaseUser };
+        const getUser = async () => {
+          const user = await User.findOne({ email: firebaseUser.email });
+          if (user == null) {
+            throw new AuthenticationError(
+              `User with email '${firebaseUser.email}' has not been created`
+            );
+          }
+          return user;
+        };
+        return { getUser, firebaseUser };
       }
     }
   });
