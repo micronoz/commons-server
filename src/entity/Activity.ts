@@ -8,7 +8,7 @@ import {
   OneToMany,
   TableInheritance
 } from 'typeorm';
-import { Field, ID, Ctx, InterfaceType, Arg, Int } from 'type-graphql';
+import { Field, ID, Ctx, InterfaceType, Int, Arg } from 'type-graphql';
 import { UserActivity } from './UserActivity';
 import { Message } from './Message';
 import { MyContext } from '../types';
@@ -61,12 +61,10 @@ export abstract class Activity extends BaseEntity {
 
   @Field(() => [UserActivity])
   async userConnections(
-    @Ctx() { user }: MyContext,
+    @Ctx() { getUser }: MyContext,
     @Arg('status', () => Int, { nullable: true }) status: number | null
   ): Promise<UserActivity[]> {
-    if (!user) {
-      throw new AuthenticationError('User has not been created.');
-    }
+    const user = await getUser();
     if (user.id === (await this.organizer()).id) {
       if (status == null) {
         return this.userConnectionsDb;
@@ -89,7 +87,8 @@ export abstract class Activity extends BaseEntity {
   messageConnectionsDb: Promise<Message[]>;
 
   @Field(() => [Message])
-  async messageConnections(@Ctx() { user }: MyContext): Promise<Message[]> {
+  async messageConnections(@Ctx() { getUser }: MyContext): Promise<Message[]> {
+    const user = await getUser();
     try {
       await UserActivity.findOneOrFail({
         where: { user, activity: this, attendanceStatus: 1 } //TODO add condition for if the user has been accepted to the activity

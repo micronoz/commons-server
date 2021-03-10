@@ -124,7 +124,7 @@ export class ActivityResolver {
   }
   @Mutation(() => InPersonActivity)
   async createInPersonActivity(
-    @Ctx() { user }: MyContext,
+    @Ctx() { getUser }: MyContext,
     @Arg('title') title: string,
     @Arg('organizerCoordinates', () => LocationInput)
     organizerCoordinates: LocationInput,
@@ -133,9 +133,7 @@ export class ActivityResolver {
     @Arg('physicalAddress', { nullable: true }) physicalAddress: string,
     @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
   ): Promise<InPersonActivity> {
-    if (!user) {
-      throw new AuthenticationError('User has not been created.');
-    }
+    const user = await getUser();
     var activity = InPersonActivity.create({
       title,
       description,
@@ -179,15 +177,13 @@ export class ActivityResolver {
   }
   @Mutation(() => OnlineActivity)
   async createOnlineActivity(
-    @Ctx() { user }: MyContext,
+    @Ctx() { getUser }: MyContext,
     @Arg('title') title: string,
     @Arg('description', { nullable: true }) description: string,
     @Arg('eventUrl', { nullable: true }) eventUrl: string,
     @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
   ): Promise<OnlineActivity> {
-    if (!user) {
-      throw new AuthenticationError('User has not been created.');
-    }
+    const user = await getUser();
     var activity = OnlineActivity.create({
       title,
       description,
@@ -262,11 +258,9 @@ export class ActivityResolver {
   @Mutation(() => UserActivity)
   async requestToJoinActivity(
     @Arg('id') id: string,
-    @Ctx() { user }: MyContext
+    @Ctx() { getUser }: MyContext
   ): Promise<UserActivity> {
-    if (!user) {
-      throw new AuthenticationError('User has not been created.');
-    }
+    const user = await getUser();
     const activity = await Activity.findOneOrFail({ id });
     if (
       await UserActivity.findOne({
@@ -294,8 +288,9 @@ export class ActivityResolver {
   async acceptJoinRequest(
     @Arg('userId') userId: string,
     @Arg('activityId') activityId: string,
-    @Ctx() { user }: MyContext
+    @Ctx() { getUser }: MyContext
   ): Promise<UserActivity> {
+    const user = await getUser();
     return this.setUserActivityAttendanceCheckAdmin(
       activityId,
       user,
@@ -308,8 +303,9 @@ export class ActivityResolver {
   async rejectJoinRequest(
     @Arg('userId') userId: string,
     @Arg('activityId') activityId: string,
-    @Ctx() { user }: MyContext
+    @Ctx() { getUser }: MyContext
   ): Promise<UserActivity> {
+    const user = await getUser();
     return this.setUserActivityAttendanceCheckAdmin(
       activityId,
       user,

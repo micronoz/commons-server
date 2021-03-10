@@ -5,6 +5,6 @@ import { FirebaseUser } from './model/firebaseUser';
 export type MyContext = {
   req: Request;
   res: Response;
-  user: User;
+  getUser: () => Promise<User>;
   firebaseUser: FirebaseUser;
 };

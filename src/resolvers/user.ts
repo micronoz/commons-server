@@ -6,7 +6,8 @@ import { MyContext } from '../types';
 @Resolver()
 export class UserResolver {
   @Query(() => User, { nullable: true })
-  user(@Ctx() { user }: MyContext): User {
+  async user(@Ctx() { getUser }: MyContext): Promise<User> {
+    const user = await getUser();
     return user;
   }
 
@@ -24,14 +25,11 @@ export class UserResolver {
 
   @Mutation(() => User)
   async createUser(
-    @Ctx() { user, firebaseUser }: MyContext,
+    @Ctx() { firebaseUser }: MyContext,
     @Arg('firstName') firstName: string,
     @Arg('lastName') lastName: string,
     @Arg('handle') handle: string
   ) {
-    if (user != null) {
-      throw new ApolloError('User already exists');
-    }
     const newUser = User.create({
       handle: handle,
       email: firebaseUser.email,
