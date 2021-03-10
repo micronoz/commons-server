@@ -63,10 +63,8 @@ export class InPersonActivity extends Activity {
       return null;
     }
     const loc = this.eventCoordinatesDb;
-    const parsed = loc.toString().slice(1, loc.toString().length - 1);
-    const coordinates = parsed.split(',');
-    const x = +coordinates[0];
-    const y = +coordinates[1];
+    const x = +(loc as Point).coordinates[0];
+    const y = +(loc as Point).coordinates[1];
     return new Location(x, y);
   }
 

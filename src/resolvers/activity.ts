@@ -44,7 +44,7 @@ export class ActivityResolver {
       //TODO: Check if the distance is actually accurate in kilometers.
       const selectedActivities = await query
         .where(
-          'ST_Distance(activity.organizerCoordinatesDb, ST_GeomFromGeoJSON(:discoveryPoint)::geography) < :radiusInSRID'
+          'ST_Distance(COALESCE("eventCoordinatesDb", "organizerCoordinatesDb"), ST_GeomFromGeoJSON(:discoveryPoint)::geography) < :radiusInSRID'
         )
         .setParameters({
           discoveryPoint: JSON.stringify(discoveryPoint),
@@ -53,8 +53,9 @@ export class ActivityResolver {
         .getMany();
 
       const distances = await query
+
         .select(
-          'ST_Distance(activity.organizerCoordinatesDb, ST_GeomFromGeoJSON(:discoveryPoint)::geography)/1000 AS distance'
+          'ST_Distance(COALESCE("eventCoordinatesDb", "organizerCoordinatesDb"), ST_GeomFromGeoJSON(:discoveryPoint)::geography)/1000 AS distance'
         )
         .addSelect('id AS id')
         .setParameters({
@@ -153,13 +154,17 @@ export class ActivityResolver {
       ]
     };
     activity.organizerCoordinatesDb = organizerPoint as Geometry;
-    // if (physicalAddress) {
-    //   const eventCoordinates = await this.getCoordinatesFromPhysicalAddress(
-    //     physicalAddress
-    //   );
-    //   const eventPoint = `(${eventCoordinates.lng}, ${eventCoordinates.lat})`;
-    //   activity.eventCoordinatesDb = (eventPoint as unknown) as Point;
-    // }
+
+    if (physicalAddress) {
+      const eventCoordinates = await this.getCoordinatesFromPhysicalAddress(
+        physicalAddress
+      );
+      const eventPoint = {
+        type: 'Point',
+        coordinates: [eventCoordinates.lng, eventCoordinates.lat]
+      };
+      activity.eventCoordinatesDb = eventPoint as Geometry;
+    }
 
     activity = await activity.save();
     const userActivity = UserActivity.create({
