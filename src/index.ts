@@ -9,6 +9,7 @@ import { decodeToken } from './middleware/auth';
 import { OrmConfig } from './ormconfig';
 import { MessageResolver } from './resolvers/message';
 import { User } from './entity/User';
+import { MyContext } from './types';
 
 const express = require('express');
 const admin = require('firebase-admin');
@@ -49,7 +50,7 @@ const main = async () => {
           }
           return user;
         };
-        return { getUser, firebaseUser };
+        return { getUser, firebaseUser } as MyContext;
       }
     }
   });

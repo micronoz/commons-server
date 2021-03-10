@@ -64,7 +64,7 @@ export abstract class Activity extends BaseEntity {
     @Ctx() { getUser }: MyContext,
     @Arg('status', () => Int, { nullable: true }) status: number | null
   ): Promise<UserActivity[]> {
-    const user = await getUser;
+    const user = await getUser();
     if (user.id === (await this.organizer()).id) {
       if (status == null) {
         return this.userConnectionsDb;

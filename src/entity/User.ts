@@ -41,7 +41,7 @@ export class User extends BaseEntity {
 
   @Field(() => UserPrivateInfo)
   async private(@Ctx() { getUser }: MyContext): Promise<UserPrivateInfo> {
-    return (await getUser) as UserPrivateInfo;
+    return (await getUser()) as UserPrivateInfo;
   }
 
   @Field(() => String)

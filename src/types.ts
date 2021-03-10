@@ -3,11 +3,8 @@ import { User } from './entity/User';
 import { FirebaseUser } from './model/firebaseUser';
 
 export class MyContext {
-  req: Request;
-  res: Response;
-  get getUser(): Promise<User> {
-    return this._getUser();
-  }
-  private _getUser: () => Promise<User>;
-  firebaseUser: FirebaseUser;
+  public req: Request;
+  public res: Response;
+  public getUser: () => Promise<User>;
+  public firebaseUser: FirebaseUser;
 }

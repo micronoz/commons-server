@@ -76,7 +76,7 @@ export class ActivityResolver {
     @Arg('physicalAddress', { nullable: true }) physicalAddress: string,
     @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
   ): Promise<InPersonActivity> {
-    const user = await getUser;
+    const user = await getUser();
     var activity = InPersonActivity.create({
       title,
       description,
@@ -115,7 +115,7 @@ export class ActivityResolver {
     @Arg('eventUrl', { nullable: true }) eventUrl: string,
     @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
   ): Promise<OnlineActivity> {
-    const user = await getUser;
+    const user = await getUser();
     var activity = OnlineActivity.create({
       title,
       description,
@@ -192,7 +192,7 @@ export class ActivityResolver {
     @Arg('id') id: string,
     @Ctx() { getUser }: MyContext
   ): Promise<UserActivity> {
-    const user = await getUser;
+    const user = await getUser();
     const activity = await Activity.findOneOrFail({ id });
     if (
       await UserActivity.findOne({
@@ -222,7 +222,7 @@ export class ActivityResolver {
     @Arg('activityId') activityId: string,
     @Ctx() { getUser }: MyContext
   ): Promise<UserActivity> {
-    const user = await getUser;
+    const user = await getUser();
     return this.setUserActivityAttendanceCheckAdmin(
       activityId,
       user,
@@ -237,7 +237,7 @@ export class ActivityResolver {
     @Arg('activityId') activityId: string,
     @Ctx() { getUser }: MyContext
   ): Promise<UserActivity> {
-    const user = await getUser;
+    const user = await getUser();
     return this.setUserActivityAttendanceCheckAdmin(
       activityId,
       user,

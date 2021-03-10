@@ -7,7 +7,7 @@ import { MyContext } from '../types';
 export class UserResolver {
   @Query(() => User, { nullable: true })
   async user(@Ctx() { getUser }: MyContext): Promise<User> {
-    const user = await getUser;
+    const user = await getUser();
     return user;
   }
 
