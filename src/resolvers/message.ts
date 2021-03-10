@@ -4,6 +4,7 @@ import { MyContext } from '../types';
 import { UserActivity } from '../entity/UserActivity';
 import { Activity } from '../entity/Activity';
 import { ApolloError } from 'apollo-server-express';
+import { FindOperator } from 'typeorm';
 
 @Resolver()
 export class MessageResolver {
@@ -21,7 +22,8 @@ export class MessageResolver {
       await UserActivity.findOneOrFail({
         where: {
           activity: await activity,
-          user: user
+          user: user,
+          attendanceStatus: 1
         }
       });
     } catch (e) {

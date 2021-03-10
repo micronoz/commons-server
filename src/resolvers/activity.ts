@@ -13,7 +13,8 @@ import { Activity } from '../entity/Activity';
 import { UserActivity } from '../entity/UserActivity';
 import { MyContext } from '../types';
 import { Client, LatLngLiteral } from '@googlemaps/google-maps-services-js';
-import { getConnection, LessThan, SelectQueryBuilder } from 'typeorm';
+import { getConnection } from 'typeorm';
+import { User } from '../entity/User';
 const client = new Client({});
 
 @Resolver()
@@ -169,7 +170,7 @@ export class ActivityResolver {
     activity = await activity.save();
     const userActivity = UserActivity.create({
       isOrganizing: true,
-      attendanceStatus: 0
+      attendanceStatus: 1
     });
     userActivity.activity = Promise.resolve(activity);
     userActivity.user = Promise.resolve(user);
@@ -197,7 +198,7 @@ export class ActivityResolver {
     activity = await activity.save();
     const userActivity = UserActivity.create({
       isOrganizing: true,
-      attendanceStatus: 0
+      attendanceStatus: 1
     });
     userActivity.activity = Promise.resolve(activity);
     userActivity.user = Promise.resolve(user);
@@ -267,13 +268,82 @@ export class ActivityResolver {
       throw new AuthenticationError('User has not been created.');
     }
     const activity = await Activity.findOneOrFail({ id });
-    const userActivity = UserActivity.create();
+    if (
+      await UserActivity.findOne({
+        where: {
+          activity: activity,
+          user: user
+        }
+      })
+    ) {
+      throw new ApolloError(
+        `User has already requested to join this activity with id: ${id}`,
+        '400'
+      );
+    }
+    let userActivity = UserActivity.create();
     userActivity.isOrganizing = false;
     userActivity.attendanceStatus = 0;
     userActivity.activity = Promise.resolve(activity);
     userActivity.user = Promise.resolve(user);
-    (await activity.userConnections).push(userActivity);
-    await activity.save();
+    userActivity = await userActivity.save();
     return userActivity;
+  }
+
+  @Mutation(() => UserActivity)
+  async acceptJoinRequest(
+    @Arg('userId') userId: string,
+    @Arg('activityId') activityId: string,
+    @Ctx() { user }: MyContext
+  ): Promise<UserActivity> {
+    return this.setUserActivityAttendanceCheckAdmin(
+      activityId,
+      user,
+      userId,
+      1
+    );
+  }
+
+  @Mutation(() => UserActivity)
+  async rejectJoinRequest(
+    @Arg('userId') userId: string,
+    @Arg('activityId') activityId: string,
+    @Ctx() { user }: MyContext
+  ): Promise<UserActivity> {
+    return this.setUserActivityAttendanceCheckAdmin(
+      activityId,
+      user,
+      userId,
+      2
+    );
+  }
+
+  async setUserActivityAttendanceCheckAdmin(
+    activityId: string,
+    user: User,
+    userId: string,
+    attendanceStatus: number
+  ): Promise<UserActivity> {
+    if (!user) {
+      throw new AuthenticationError('User has not been created.');
+    }
+    const activity = await Activity.findOneOrFail({ id: activityId });
+    const adminUserActivity = await UserActivity.findOne({
+      where: {
+        activity: activity,
+        user: user
+      }
+    });
+    if (adminUserActivity == null || !adminUserActivity.isOrganizing) {
+      throw new ApolloError(
+        `User is not authorized to make changes to this activity with id: ${activityId}`,
+        '400'
+      );
+    }
+    const otherUserActivity = await UserActivity.findOneOrFail({
+      where: { user: await User.findOneOrFail({ id: userId }), activity }
+    });
+    otherUserActivity.attendanceStatus = attendanceStatus;
+    return otherUserActivity.save();
   }
 }
