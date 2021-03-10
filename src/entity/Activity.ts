@@ -12,7 +12,7 @@ import { Field, ID, Ctx, InterfaceType, Arg, Int } from 'type-graphql';
 import { UserActivity } from './UserActivity';
 import { Message } from './Message';
 import { MyContext } from '../types';
-import { ApolloError } from 'apollo-server-express';
+import { ApolloError, AuthenticationError } from 'apollo-server-express';
 import { User } from './User';
 import { stat } from 'fs';
 
@@ -64,6 +64,9 @@ export abstract class Activity extends BaseEntity {
     @Ctx() { user }: MyContext,
     @Arg('status', () => Int, { nullable: true }) status: number | null
   ): Promise<UserActivity[]> {
+    if (!user) {
+      throw new AuthenticationError('User has not been created.');
+    }
     if (user.id === (await this.organizer()).id) {
       if (status == null) {
         return this.userConnectionsDb;
