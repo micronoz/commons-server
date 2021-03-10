@@ -25,12 +25,11 @@ export class UserResolver {
 
   @Mutation(() => User)
   async createUser(
-    @Ctx() { getUser, firebaseUser }: MyContext,
+    @Ctx() { firebaseUser }: MyContext,
     @Arg('firstName') firstName: string,
     @Arg('lastName') lastName: string,
     @Arg('handle') handle: string
   ) {
-    const user = await getUser;
     const newUser = User.create({
       handle: handle,
       email: firebaseUser.email,

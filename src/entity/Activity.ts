@@ -88,7 +88,7 @@ export abstract class Activity extends BaseEntity {
 
   @Field(() => [Message])
   async messageConnections(@Ctx() { getUser }: MyContext): Promise<Message[]> {
-    const user = await getUser;
+    const user = await getUser();
     try {
       await UserActivity.findOneOrFail({
         where: { user, activity: this, attendanceStatus: 1 } //TODO add condition for if the user has been accepted to the activity
