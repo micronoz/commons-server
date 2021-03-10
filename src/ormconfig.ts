@@ -16,7 +16,7 @@ let OrmConfig = {
   password: __dbpassword__,
   database: __dbname__,
   synchronize: true,
-  logging: true,
+  logging: false,
   entities: [join(__dirname, 'entity', '*.{ts,js}')],
   migrations: [join(__dirname, 'migration', '*.{ts,js}')],
   subscribers: [join(__dirname, 'subscriber', '*.{ts,js}')],

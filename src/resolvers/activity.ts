@@ -100,7 +100,7 @@ export class ActivityResolver {
     activity = await activity.save();
     const userActivity = UserActivity.create({
       isOrganizing: true,
-      attendanceStatus: 0
+      attendanceStatus: 1
     });
     userActivity.activity = Promise.resolve(activity);
     userActivity.user = Promise.resolve(user);
@@ -126,7 +126,7 @@ export class ActivityResolver {
     activity = await activity.save();
     const userActivity = UserActivity.create({
       isOrganizing: true,
-      attendanceStatus: 0
+      attendanceStatus: 1
     });
     userActivity.activity = Promise.resolve(activity);
     userActivity.user = Promise.resolve(user);
@@ -194,13 +194,25 @@ export class ActivityResolver {
   ): Promise<UserActivity> {
     const user = await getUser;
     const activity = await Activity.findOneOrFail({ id });
-    const userActivity = UserActivity.create();
+    if (
+      await UserActivity.findOne({
+        where: {
+          activity: activity,
+          user: user
+        }
+      })
+    ) {
+      throw new ApolloError(
+        `User has already requested to join this activity with id: ${id}`,
+        '400'
+      );
+    }
+    let userActivity = UserActivity.create();
     userActivity.isOrganizing = false;
     userActivity.attendanceStatus = 0;
     userActivity.activity = Promise.resolve(activity);
     userActivity.user = Promise.resolve(user);
-    (await activity.userConnectionsDb).push(userActivity);
-    await activity.save();
+    userActivity = await userActivity.save();
     return userActivity;
   }
 

@@ -31,7 +31,6 @@ const main = async () => {
 
   await createConnection(OrmConfig);
   const app = express();
-
   //const RedisStore = connectRedis(session);
 
   const apolloServer = new ApolloServer({

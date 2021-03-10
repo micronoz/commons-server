@@ -12,8 +12,9 @@ import { Field, ID, Ctx, InterfaceType, Int, Arg } from 'type-graphql';
 import { UserActivity } from './UserActivity';
 import { Message } from './Message';
 import { MyContext } from '../types';
-import { ApolloError } from 'apollo-server-express';
+import { ApolloError, AuthenticationError } from 'apollo-server-express';
 import { User } from './User';
+import { stat } from 'fs';
 
 @InterfaceType()
 @Entity()
@@ -53,7 +54,6 @@ export abstract class Activity extends BaseEntity {
   @Column({ type: 'timestamp with time zone', nullable: true })
   eventDateTime: Date;
 
-  @Field(() => [UserActivity])
   @OneToMany(() => UserActivity, (userActivity) => userActivity.activity, {
     cascade: true
   })
@@ -91,7 +91,7 @@ export abstract class Activity extends BaseEntity {
     const user = await getUser;
     try {
       await UserActivity.findOneOrFail({
-        where: { user, activity: this } //TODO add condition for if the user has been accepted to the activity
+        where: { user, activity: this, attendanceStatus: 1 } //TODO add condition for if the user has been accepted to the activity
       });
       return this.messageConnectionsDb;
     } catch {
