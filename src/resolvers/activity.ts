@@ -1,3 +1,4 @@
+import { InPersonActivityRecommendation } from './../entity/InPersonActivityRecommendation';
 import { OnlineActivity } from './../entity/OnlineActivity';
 import { InPersonActivity } from './../entity/InPersonActivity';
 import {
@@ -6,12 +7,13 @@ import {
   AuthenticationError
 } from 'apollo-server-express';
 import { LocationInput } from './../input-types/LocationInput';
-import { Point } from 'geojson';
+import { Geometry } from 'geojson';
 import { Arg, Mutation, Query, Resolver, Ctx } from 'type-graphql';
 import { Activity } from '../entity/Activity';
 import { UserActivity } from '../entity/UserActivity';
 import { MyContext } from '../types';
 import { Client, LatLngLiteral } from '@googlemaps/google-maps-services-js';
+import { getConnection } from 'typeorm';
 import { User } from '../entity/User';
 const client = new Client({});
 
@@ -22,13 +24,68 @@ export class ActivityResolver {
     return Activity.findOneOrFail({ id });
   }
 
-  @Query(() => [InPersonActivity])
+  @Query(() => [InPersonActivityRecommendation])
   async discoverInPersonActivities(
     @Arg('discoveryCoordinates') discoveryCoordinates: LocationInput,
     @Arg('radiusInKilometers') radiusInKilometers: number
-  ): Promise<InPersonActivity[]> {
-    //TODO: Filter by coordinates and radius.
-    return InPersonActivity.find();
+  ): Promise<InPersonActivityRecommendation[]> {
+    try {
+      const discoveryPoint = {
+        type: 'Point',
+        srid: 4326,
+        coordinates: [
+          discoveryCoordinates.xLocation,
+          discoveryCoordinates.yLocation
+        ]
+      };
+
+      const query = getConnection()
+        .getRepository(InPersonActivity)
+        .createQueryBuilder('activity');
+      //TODO: Check if the distance is actually accurate in kilometers.
+      const selectedActivities = await query
+        .where(
+          'ST_Distance(COALESCE("eventCoordinatesDb", "organizerCoordinatesDb"), ST_GeomFromGeoJSON(:discoveryPoint)::geography) < :radiusInSRID'
+        )
+        .setParameters({
+          discoveryPoint: JSON.stringify(discoveryPoint),
+          radiusInSRID: radiusInKilometers * 1000
+        })
+        .getMany();
+
+      const distances = await query
+
+        .select(
+          'ST_Distance(COALESCE("eventCoordinatesDb", "organizerCoordinatesDb"), ST_GeomFromGeoJSON(:discoveryPoint)::geography)/1000 AS distance'
+        )
+        .addSelect('id AS id')
+        .setParameters({
+          discoveryPoint: JSON.stringify(discoveryPoint),
+          radiusInSRID: radiusInKilometers * 1000
+        })
+        .andWhereInIds(selectedActivities)
+        .execute();
+
+      return selectedActivities.map((currentValue, index) => {
+        //TODO: See if this case is possible. If it is, handle it.
+        if (currentValue.id != distances[index].id) {
+          console.error(
+            'ERROR: Distances did not return in the same order as selected activities'
+          );
+          throw Error(
+            'Distances did not return in the same order as selected activities'
+          );
+        }
+        const recommendation = new InPersonActivityRecommendation();
+        recommendation.activity = currentValue;
+        recommendation.distance = distances[index].distance;
+        return recommendation;
+      });
+    } catch (e) {
+      console.error('Discover in person activity ERROR:');
+      console.error(e);
+      return Promise.reject('Error when discovering in person activity.');
+    }
   }
   @Query(() => [OnlineActivity])
   async discoverOnlineActivities(): Promise<OnlineActivity[]> {
@@ -69,10 +126,10 @@ export class ActivityResolver {
   async createInPersonActivity(
     @Ctx() { user }: MyContext,
     @Arg('title') title: string,
-    @Arg('description', { nullable: true }) description: string,
-    //TODO: Make non nullable (organizerCoordinates)
-    @Arg('organizerCoordinates', () => LocationInput, { nullable: true })
+    @Arg('organizerCoordinates', () => LocationInput)
     organizerCoordinates: LocationInput,
+    @Arg('description', { nullable: true })
+    description: string,
     @Arg('physicalAddress', { nullable: true }) physicalAddress: string,
     @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
   ): Promise<InPersonActivity> {
@@ -86,17 +143,28 @@ export class ActivityResolver {
       physicalAddress,
       eventDateTime
     });
+    // console.log(
+    //   `Creating in person activity. Organizer coordinates: ${organizerCoordinates.xLocation}, ${organizerCoordinates.yLocation}`
+    // );
+    // const organizerPoint = `(${organizerCoordinates.xLocation}, ${organizerCoordinates.yLocation})`;
+    const organizerPoint = {
+      type: 'Point',
+      coordinates: [
+        organizerCoordinates.xLocation,
+        organizerCoordinates.yLocation
+      ]
+    };
+    activity.organizerCoordinatesDb = organizerPoint as Geometry;
 
-    if (organizerCoordinates) {
-      const organizerPoint = `(${organizerCoordinates.xLocation}, ${organizerCoordinates.yLocation})`;
-      activity.organizerCoordinatesDb = (organizerPoint as unknown) as Point;
-    }
     if (physicalAddress) {
       const eventCoordinates = await this.getCoordinatesFromPhysicalAddress(
         physicalAddress
       );
-      const eventPoint = `(${eventCoordinates.lng}, ${eventCoordinates.lat})`;
-      activity.eventCoordinatesDb = (eventPoint as unknown) as Point;
+      const eventPoint = {
+        type: 'Point',
+        coordinates: [eventCoordinates.lng, eventCoordinates.lat]
+      };
+      activity.eventCoordinatesDb = eventPoint as Geometry;
     }
 
     activity = await activity.save();
