@@ -8,12 +8,13 @@ import {
   OneToMany,
   TableInheritance
 } from 'typeorm';
-import { Field, ID, Ctx, InterfaceType } from 'type-graphql';
+import { Field, ID, Ctx, InterfaceType, Arg, Int } from 'type-graphql';
 import { UserActivity } from './UserActivity';
 import { Message } from './Message';
 import { MyContext } from '../types';
-import { ApolloError } from 'apollo-server-express';
+import { ApolloError, AuthenticationError } from 'apollo-server-express';
 import { User } from './User';
+import { stat } from 'fs';
 
 @InterfaceType()
 @Entity()
@@ -53,11 +54,36 @@ export abstract class Activity extends BaseEntity {
   @Column({ type: 'timestamp with time zone', nullable: true })
   eventDateTime: Date;
 
-  @Field(() => [UserActivity])
   @OneToMany(() => UserActivity, (userActivity) => userActivity.activity, {
     cascade: true
   })
-  userConnections: Promise<UserActivity[]>;
+  userConnectionsDb: Promise<UserActivity[]>;
+
+  @Field(() => [UserActivity])
+  async userConnections(
+    @Ctx() { user }: MyContext,
+    @Arg('status', () => Int, { nullable: true }) status: number | null
+  ): Promise<UserActivity[]> {
+    if (!user) {
+      throw new AuthenticationError('User has not been created.');
+    }
+    if (user.id === (await this.organizer()).id) {
+      if (status == null) {
+        return this.userConnectionsDb;
+      } else {
+        return UserActivity.find({
+          where: { activity: this, attendanceStatus: status }
+        });
+      }
+    } else {
+      return UserActivity.find({
+        where: [
+          { activity: this, attendanceStatus: 1 },
+          { activity: this, user }
+        ]
+      });
+    }
+  }
 
   @OneToMany(() => Message, (message) => message.activity, { cascade: true })
   messageConnectionsDb: Promise<Message[]>;
@@ -66,7 +92,7 @@ export abstract class Activity extends BaseEntity {
   async messageConnections(@Ctx() { user }: MyContext): Promise<Message[]> {
     try {
       await UserActivity.findOneOrFail({
-        where: { user, activity: this } //TODO add condition for if the user has been accepted to the activity
+        where: { user, activity: this, attendanceStatus: 1 } //TODO add condition for if the user has been accepted to the activity
       });
       return this.messageConnectionsDb;
     } catch {
