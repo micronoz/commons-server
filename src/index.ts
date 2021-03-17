@@ -11,8 +11,10 @@ import { MessageResolver } from './resolvers/message';
 import { User } from './entity/User';
 import { MyContext } from './types';
 
-const express = require('express');
-const admin = require('firebase-admin');
+import express from 'express';
+import admin from 'firebase-admin';
+import https from 'https';
+import http from 'http';
 //const connectRedis = require('connect-redis');
 //const session = require('express-session');
 
@@ -32,6 +34,7 @@ const main = async () => {
 
   await createConnection(OrmConfig);
   const app = express();
+
   //const RedisStore = connectRedis(session);
 
   const apolloServer = new ApolloServer({
@@ -41,9 +44,9 @@ const main = async () => {
     context: async ({ req }) => {
       {
         const firebaseUser = await decodeToken(req);
-        const getUser = async () => {
+        const getUser = async (shouldThrow: boolean = true) => {
           const user = await User.findOne({ email: firebaseUser.email });
-          if (user == null) {
+          if (user == null && shouldThrow) {
             throw new AuthenticationError(
               `User with email '${firebaseUser.email}' has not been created`
             );
@@ -59,11 +62,13 @@ const main = async () => {
   app.get('/', function (_req: any, res: { send: (arg0: string) => void }) {
     res.send('hello world');
   });
-  app.listen(port, () => {
-    console.log('Server started on localhost:' + port);
-  });
+  // app.listen(port, () => {
+  //   console.log('Server started on localhost:' + port);
+  // });
+  http.createServer(app).listen(port);
+  // https.createServer(app).listen(443)
 };
 
 main().catch((err) => {
-  console.log(err);
+  console.error(err);
 });

@@ -17,6 +17,6 @@ ENV NODE_ENV=production
 RUN yarn run build
 
 # NEED TO EXPOSE PORTS BASED ON ENV
-EXPOSE 4000 80 
+EXPOSE 4000 80 443
 
 ENTRYPOINT [ "node", "dist/index.js" ] 

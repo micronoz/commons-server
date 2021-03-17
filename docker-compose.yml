@@ -19,10 +19,10 @@ services:
       - DATABASE_NAME=commons
       - DATABASE_PASSWORD=commons
       - DATABASE_PORT=5432
-    expose:
-      - '4000'
+
     ports:
       - '4000:4000'
+      - '4001:443'
     depends_on:
       - 'pg'
     command: yarn run dev-docker
@@ -32,6 +32,6 @@ services:
     image: 'postgis/postgis'
     container_name: 'postgres'
     ports:
-      - '5432:5432'
+      - '5433:5432'
     volumes:
       - ./pg/db_data:/var/lib/postgresql/data

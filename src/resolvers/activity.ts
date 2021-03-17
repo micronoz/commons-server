@@ -247,8 +247,7 @@ export class ActivityResolver {
     activity.description = description;
     activity.eventUrl = eventUrl;
     activity.eventDateTime = eventDateTime;
-    await activity.save();
-    return activity;
+    return await activity.save();
   }
 
   @Mutation(() => Activity)

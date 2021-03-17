@@ -7,7 +7,7 @@ import { MyContext } from '../types';
 export class UserResolver {
   @Query(() => User, { nullable: true })
   async user(@Ctx() { getUser }: MyContext): Promise<User> {
-    const user = await getUser();
+    const user = await getUser(false);
     return user;
   }
 
@@ -15,7 +15,6 @@ export class UserResolver {
   async isUserHandleTaken(@Arg('userHandle') handle: string): Promise<Boolean> {
     const userFound = await User.findOne({ where: { handle: handle } });
     console.log(userFound);
-
     if (userFound) {
       return true;
     } else {
