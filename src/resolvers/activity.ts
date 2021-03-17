@@ -222,12 +222,81 @@ export class ActivityResolver {
   // }
 
   @Mutation(() => Activity)
-  async updateActivity(
+  async updateOnlineActivity(
+    @Ctx() { getUser }: MyContext,
     @Arg('id') id: string,
-    @Arg('title', { nullable: true }) title: string
-  ): Promise<Activity> {
-    const activity = await Activity.findOneOrFail({ id });
+    @Arg('title') title: string,
+    @Arg('description', { nullable: true }) description: string,
+    @Arg('eventUrl', { nullable: true }) eventUrl: string,
+    @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
+  ): Promise<OnlineActivity> {
+    const user = await getUser();
+
+    const activity = await OnlineActivity.findOneOrFail({ id });
+    try {
+      await UserActivity.findOneOrFail({
+        where: { isOrganizing: true, user, activity }
+      });
+    } catch {
+      throw new ApolloError(
+        `User (${user.id}, ${user.handle}) cannot edit this activity (${id})`,
+        '401'
+      );
+    }
     activity.title = title;
+    activity.description = description;
+    activity.eventUrl = eventUrl;
+    activity.eventDateTime = eventDateTime;
+    await activity.save();
+    return activity;
+  }
+
+  @Mutation(() => Activity)
+  async updateInPersonActivity(
+    @Ctx() { getUser }: MyContext,
+    @Arg('id') id: string,
+    @Arg('title') title: string,
+    @Arg('organizerCoordinates', () => LocationInput)
+    organizerCoordinates: LocationInput,
+    @Arg('description', { nullable: true })
+    description: string,
+    @Arg('physicalAddress', { nullable: true }) physicalAddress: string,
+    @Arg('eventDateTime', { nullable: true }) eventDateTime: Date
+  ): Promise<InPersonActivity> {
+    const user = await getUser();
+    const activity = await InPersonActivity.findOneOrFail({ id });
+    try {
+      await UserActivity.findOneOrFail({
+        where: { isOrganizing: true, user, activity }
+      });
+    } catch {
+      throw new ApolloError(
+        `User (${user.id}, ${user.handle}) cannot edit this activity (${id})`,
+        '401'
+      );
+    }
+    const organizerPoint = {
+      type: 'Point',
+      coordinates: [
+        organizerCoordinates.xLocation,
+        organizerCoordinates.yLocation
+      ]
+    };
+    activity.organizerCoordinatesDb = organizerPoint as Geometry;
+
+    if (physicalAddress) {
+      const eventCoordinates = await this.getCoordinatesFromPhysicalAddress(
+        physicalAddress
+      );
+      const eventPoint = {
+        type: 'Point',
+        coordinates: [eventCoordinates.lng, eventCoordinates.lat]
+      };
+      activity.eventCoordinatesDb = eventPoint as Geometry;
+    }
+    activity.title = title;
+    activity.description = description;
+    activity.eventDateTime = eventDateTime;
     await activity.save();
     return activity;
   }
@@ -323,6 +392,7 @@ export class ActivityResolver {
     if (!user) {
       throw new AuthenticationError('User has not been created.');
     }
+
     const activity = await Activity.findOneOrFail({ id: activityId });
     const adminUserActivity = await UserActivity.findOne({
       where: {
@@ -330,12 +400,18 @@ export class ActivityResolver {
         user: user
       }
     });
+
     if (adminUserActivity == null || !adminUserActivity.isOrganizing) {
       throw new ApolloError(
         `User is not authorized to make changes to this activity with id: ${activityId}`,
         '400'
       );
     }
+
+    if (user.id == userId) {
+      throw new ApolloError('Cannot edit your own attendance');
+    }
+
     const otherUserActivity = await UserActivity.findOneOrFail({
       where: { user: await User.findOneOrFail({ id: userId }), activity }
     });
