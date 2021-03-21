@@ -103,6 +103,16 @@ export class ActivityResolver {
         },
         timeout: 1000
       });
+      // console.log(
+      //   (
+      //     await client.reverseGeocode({
+      //       params: {
+      //         key: process.env.GOOGLE_MAPS_API_KEY ?? '',
+      //         latlng: r.data.results[0].geometry.location
+      //       }
+      //     })
+      //   ).data.results
+      // );
       console.log('Geolocator output:');
       if (r && r.data?.results.length > 0) {
         console.log(r.data.results[0].geometry.location);
@@ -292,6 +302,7 @@ export class ActivityResolver {
         coordinates: [eventCoordinates.lng, eventCoordinates.lat]
       };
       activity.eventCoordinatesDb = eventPoint as Geometry;
+      activity.physicalAddress = physicalAddress;
     }
     activity.title = title;
     activity.description = description;

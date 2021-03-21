@@ -62,10 +62,8 @@ const main = async () => {
   app.get('/', function (_req: any, res: { send: (arg0: string) => void }) {
     res.send('hello world');
   });
-  // app.listen(port, () => {
-  //   console.log('Server started on localhost:' + port);
-  // });
   http.createServer(app).listen(port);
+  console.log('Started');
   // https.createServer(app).listen(443)
 };
 
