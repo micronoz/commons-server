@@ -38,7 +38,8 @@ export class ActivityResolver {
           discoveryCoordinates.yLocation
         ]
       };
-
+      console.log(discoveryCoordinates.xLocation);
+      console.log(discoveryCoordinates.yLocation);
       const query = getConnection()
         .getRepository(InPersonActivity)
         .createQueryBuilder('activity');
@@ -52,7 +53,7 @@ export class ActivityResolver {
           radiusInSRID: radiusInKilometers * 1000
         })
         .getMany();
-
+      console.log(selectedActivities);
       const distances = await query
 
         .select(
@@ -78,7 +79,7 @@ export class ActivityResolver {
         }
         const recommendation = new InPersonActivityRecommendation();
         recommendation.activity = currentValue;
-        recommendation.distance = distances[index].distance;
+        recommendation.distance = Math.round(distances[index].distance);
         return recommendation;
       });
     } catch (e) {
@@ -294,16 +295,23 @@ export class ActivityResolver {
     activity.organizerCoordinatesDb = organizerPoint as Geometry;
 
     if (physicalAddress) {
-      const eventCoordinates = await this.getCoordinatesFromPhysicalAddress(
-        physicalAddress
-      );
-      const eventPoint = {
-        type: 'Point',
-        coordinates: [eventCoordinates.lng, eventCoordinates.lat]
-      };
-      activity.eventCoordinatesDb = eventPoint as Geometry;
-      activity.physicalAddress = physicalAddress;
+      try {
+        const eventCoordinates = await this.getCoordinatesFromPhysicalAddress(
+          physicalAddress
+        );
+
+        const eventPoint = {
+          type: 'Point',
+          coordinates: [eventCoordinates.lng, eventCoordinates.lat]
+        };
+        activity.eventCoordinatesDb = eventPoint as Geometry;
+      } catch {
+        activity.eventCoordinatesDb = null;
+      }
+    } else {
+      activity.eventCoordinatesDb = null;
     }
+    activity.physicalAddress = physicalAddress;
     activity.title = title;
     activity.description = description;
     activity.eventDateTime = eventDateTime;
