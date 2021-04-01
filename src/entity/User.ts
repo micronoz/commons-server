@@ -39,6 +39,10 @@ export class User extends BaseEntity {
     return `${this.firstName} ${this.lastName}`;
   }
 
+  @Field(() => String)
+  @Column({ default: '' })
+  bio: string;
+
   @Field(() => UserPrivateInfo)
   async private(@Ctx() { getUser }: MyContext): Promise<UserPrivateInfo> {
     return (await getUser()) as UserPrivateInfo;

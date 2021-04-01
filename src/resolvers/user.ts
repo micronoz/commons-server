@@ -39,16 +39,30 @@ export class UserResolver {
     return newUser;
   }
 
-  //TODO: Delete
-  @Query(() => [User])
-  async users(): Promise<User[]> {
-    const users = await User.find();
-    return users;
+  @Mutation(() => User)
+  async updateUser(
+    @Ctx() { getUser }: MyContext,
+    @Arg('firstName') firstName: string,
+    @Arg('lastName') lastName: string,
+    @Arg('bio', { nullable: true }) bio: string
+  ): Promise<User> {
+    const user = await getUser();
+    user.firstName = firstName;
+    user.lastName = lastName;
+    user.bio = bio;
+    return user.save();
   }
 
-  @Mutation(() => Boolean)
-  async deleteAllUsers(): Promise<boolean> {
-    await User.remove(await User.find());
-    return true;
-  }
+  //TODO: Delete
+  // @Query(() => [User])
+  // async users(): Promise<User[]> {
+  //   const users = await User.find();
+  //   return users;
+  // }
+
+  // @Mutation(() => Boolean)
+  // async deleteAllUsers(): Promise<boolean> {
+  //   await User.remove(await User.find());
+  //   return true;
+  // }
 }
