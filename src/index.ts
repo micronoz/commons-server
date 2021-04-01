@@ -63,7 +63,7 @@ const main = async () => {
     res.send('hello world');
   });
   http.createServer(app).listen(port);
-  console.log('Started');
+  console.log('Started!');
   // https.createServer(app).listen(443)
 };
 
